@@ -131,7 +131,7 @@ export default function SignUpScreen() {
 
         <Card padding="default">
           {error ? <ErrorText>{error}</ErrorText> : null}
-          <Input label="Your name" value={name} onChangeText={setName} placeholder="Aditya" autoComplete="name" />
+          <Input label="Your name" value={name} onChangeText={setName} placeholder="First name" autoComplete="name" />
           <Input
             label="Email"
             value={email}
