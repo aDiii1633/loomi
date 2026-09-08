@@ -1,0 +1,425 @@
+/** CHAT — one-to-one conversation: text, media, voice notes, reactions. */
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Alert,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
+import { VideoView, useVideoPlayer } from 'expo-video';
+import { Avatar } from '../../src/components/primitives';
+import { LoomiIllustration } from '../../src/components/illustrations/LoomiIllustration';
+import { Icon } from '../../src/components/Icon';
+import { VoicePlayer, VoiceRecorder } from '../../src/components/voice';
+import { captureMedia, pickMedia } from '../../src/components/mediaPicker';
+import { colors, radii, space, type, border, elevation } from '../../src/theme/tokens';
+import { useSessionStore } from '../../src/state/session';
+import { useChatStore } from '../../src/state/chat';
+import { getMedia } from '../../src/data/media';
+import { formatTime } from '../../src/domain/datetime';
+import type { Message } from '../../src/domain/types';
+
+const REACTIONS = ['❤️', '😂', '🌿', '✨', '🥰'];
+
+export default function ChatScreen() {
+  const insets = useSafeAreaInsets();
+  const self = useSessionStore((s) => s.self);
+  const partner = useSessionStore((s) => s.partner);
+  const { messages, loading, error, sending, refresh, sendText, sendMedia, sendVoice, react, remove } = useChatStore();
+  const [draft, setDraft] = useState('');
+  const [recording, setRecording] = useState(false);
+  const [reactionFor, setReactionFor] = useState<string | null>(null);
+  const listRef = useRef<FlatList<Message>>(null);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const send = () => {
+    const text = draft.trim();
+    if (!text) return;
+    setDraft('');
+    sendText(text).then(() => listRef.current?.scrollToEnd({ animated: true })).catch(() => setDraft(text));
+  };
+
+  if (!self || !partner) return null;
+
+  return (
+    <View style={styles.root}>
+      <View style={{ paddingTop: insets.top + space.sm, paddingHorizontal: space.screenEdge, paddingBottom: space.sm, flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+        <Avatar name={partner.name} size={36} />
+        <Text style={{ ...type.headlineSm, color: colors.charcoal }}>{partner.name}</Text>
+      </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
+      >
+        {error ? (
+          <View style={styles.errorBox}>
+            <Icon name="alert" size={16} color={colors.error} />
+            <Text style={{ ...type.bodySm, color: colors.error, flex: 1 }}>{error}</Text>
+            <Pressable onPress={refresh}><Text style={{ ...type.labelMd, color: colors.primary }}>Retry</Text></Pressable>
+          </View>
+        ) : null}
+        <FlatList
+          ref={listRef}
+          data={messages}
+          inverted
+          keyExtractor={(m) => m.id}
+          ListEmptyComponent={
+            loading ? null : (
+              <View style={styles.emptyWrap}>
+                <LoomiIllustration asset="chat-sitting-together" size={140} style={{ marginBottom: space.sm }} />
+                <Text style={{ ...type.bodyMd, color: colors.inkVariant, textAlign: 'center' }}>
+                  Say something lovely first — it starts here.
+                </Text>
+              </View>
+            )
+          }
+          renderItem={({ item }) => (
+            <MessageBubble
+              message={item}
+              selfId={self.id}
+              partnerName={partner.name}
+              onLongPress={() => setReactionFor(item.id)}
+              onToggleReaction={(emoji) => {
+                react(item.id, emoji);
+                setReactionFor(null);
+              }}
+            />
+          )}
+          contentContainerStyle={{ paddingHorizontal: space.screenEdge, paddingBottom: space.sm, flexGrow: 1, justifyContent: 'flex-end' }}
+        />
+
+        {reactionFor ? (
+          <View style={styles.reactionBar}>
+            {REACTIONS.map((emoji) => (
+              <Pressable
+                key={emoji}
+                onPress={() => {
+                  react(reactionFor, emoji);
+                  setReactionFor(null);
+                }}
+                style={styles.reactionChip}
+                accessibilityRole="button"
+              >
+                <Text style={{ fontSize: 20 }}>{emoji}</Text>
+              </Pressable>
+            ))}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Delete message"
+              onPress={() => {
+                const id = reactionFor;
+                setReactionFor(null);
+                Alert.alert('Delete message?', 'This removes it for you.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete', style: 'destructive', onPress: () => remove(id) },
+                ]);
+              }}
+              style={styles.reactionChip}
+            >
+              <Icon name="trash2" size={18} color={colors.error} />
+            </Pressable>
+            <Pressable onPress={() => setReactionFor(null)} style={styles.reactionChip} accessibilityRole="button">
+              <Icon name="close" size={18} color={colors.inkVariant} />
+            </Pressable>
+          </View>
+        ) : null}
+
+        <View style={[styles.composer, { paddingBottom: insets.bottom + space.dockHeight + space.md }]}>
+          {recording ? (
+            <VoiceRecorder
+              onCancel={() => setRecording(false)}
+              onFinished={(result) => {
+                setRecording(false);
+                if (result) sendVoice(result).catch(() => undefined);
+              }}
+            />
+          ) : (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Add photo or video"
+                onPress={async () => {
+                  const picked = await pickMedia();
+                  for (const m of picked) await sendMedia(m);
+                }}
+                style={styles.composeBtn}
+              >
+                <Icon name="image" size={20} color={colors.charcoal} />
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Take a photo"
+                onPress={async () => {
+                  const picked = await captureMedia();
+                  if (picked) await sendMedia(picked);
+                }}
+                style={styles.composeBtn}
+              >
+                <Icon name="camera" size={20} color={colors.charcoal} />
+              </Pressable>
+              <TextInput
+                value={draft}
+                onChangeText={setDraft}
+                placeholder={`Message ${partner.name}…`}
+                placeholderTextColor={colors.outlineVariant}
+                multiline
+                style={styles.input}
+              />
+              {draft.trim() ? (
+                <Pressable accessibilityRole="button" accessibilityLabel="Send" onPress={send} style={[styles.sendBtn, sending && { opacity: 0.6 }]}>
+                  <Icon name="send" size={18} color={colors.charcoal} />
+                </Pressable>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Record voice note"
+                  onPress={() => setRecording(true)}
+                  style={styles.micBtn}
+                >
+                  <Icon name="mic" size={18} color={colors.primary} />
+                </Pressable>
+              )}
+            </>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+    </View>
+  );
+}
+
+function MessageBubble({
+  message,
+  selfId,
+  partnerName,
+  onLongPress,
+  onToggleReaction,
+}: {
+  message: Message;
+  selfId: string;
+  partnerName: string;
+  onLongPress: () => void;
+  onToggleReaction: (emoji: string) => void;
+}) {
+  const mine = message.authorId === selfId;
+  const [mediaUri, setMediaUri] = useState<string | null>(null);
+  const [waveform, setWaveform] = useState<number[] | null>(message.waveform ?? null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (message.kind === 'voice' && !waveform && message.mediaId) {
+        const { loadWaveform } = await import('../../src/data/media');
+        const wf = await loadWaveform(message.mediaId);
+        if (!cancelled) setWaveform(wf);
+      }
+      if ((message.kind === 'image' || message.kind === 'video') && message.mediaId) {
+        const media = await getMedia(message.mediaId);
+        if (!cancelled && media) setMediaUri(media.uri);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [message, waveform]);
+
+  const reactionEntries = Object.entries(message.reactions ?? {});
+
+  return (
+    <View style={[styles.bubbleRow, mine && { justifyContent: 'flex-end' }]}>
+      {!mine ? (
+        <View style={{ marginRight: space.xs, alignSelf: 'flex-end' }}>
+          <Avatar name={partnerName} size={28} />
+        </View>
+      ) : null}
+      <Pressable
+        onLongPress={onLongPress}
+        delayLongPress={280}
+        style={[
+          styles.bubble,
+          mine ? styles.bubbleMine : styles.bubbleTheirs,
+          message.kind === 'image' || message.kind === 'video' ? { padding: 4 } : null,
+        ]}
+      >
+        {message.kind === 'text' ? (
+          <Text style={{ ...type.bodyMd, color: colors.ink }}>{message.text}</Text>
+        ) : null}
+        {message.kind === 'image' && mediaUri ? (
+          <Image source={{ uri: mediaUri }} style={{ width: 220, height: 220, borderRadius: radii.md }} contentFit="cover" transition={200} />
+        ) : null}
+        {message.kind === 'video' && mediaUri ? <VideoBubble uri={mediaUri} /> : null}
+        {message.kind === 'voice' && message.mediaId ? (
+          <View style={{ width: 210 }}>
+            <VoiceBubble mediaId={message.mediaId} durationMs={message.durationMs} waveform={waveform} mine={mine} />
+          </View>
+        ) : null}
+        <Text style={[styles.time, mine && { color: 'rgba(37,37,37,0.55)' }]}>{formatTime(message.sentAt)}</Text>
+        {reactionEntries.length > 0 ? (
+          <View style={styles.reactionSummary}>
+            {reactionEntries.map(([emoji, users]) => (
+              <Pressable key={emoji} onPress={() => onToggleReaction(emoji)}>
+                <Text style={{ fontSize: 12 }}>
+                  {emoji} {users.length}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+      </Pressable>
+    </View>
+  );
+}
+
+function VideoBubble({ uri }: { uri: string }) {
+  const player = useVideoPlayer(uri, (p) => {
+    p.loop = false;
+  });
+  return (
+    <View style={{ borderRadius: radii.md, overflow: 'hidden' }}>
+      <VideoView
+        player={player}
+        style={{ width: 220, height: 220 }}
+        contentFit="cover"
+        allowsFullscreen
+      />
+    </View>
+  );
+}
+
+function VoiceBubble({ mediaId, durationMs, waveform, mine }: { mediaId: string; durationMs?: number; waveform: number[] | null; mine: boolean }) {
+  const [uri, setUri] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getMedia(mediaId).then((m) => {
+      if (!cancelled && m) setUri(m.uri);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [mediaId]);
+  if (!uri) {
+    return (
+      <View style={{ paddingVertical: space.sm }}>
+        <Text style={{ ...type.bodySm, color: colors.inkVariant }}>Voice note…</Text>
+      </View>
+    );
+  }
+  return <VoicePlayer uri={uri} durationMs={durationMs} waveform={waveform} mine={mine} />;
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.surface },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.xs,
+    marginHorizontal: space.screenEdge,
+    marginBottom: space.sm,
+    backgroundColor: colors.errorContainer,
+    borderRadius: radii.md,
+    padding: space.sm,
+  },
+  emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: space['2xl'] },
+  bubbleRow: { flexDirection: 'row', alignItems: 'flex-end', marginVertical: 4 },
+  bubble: {
+    maxWidth: '78%',
+    borderRadius: radii.lg,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    backgroundColor: colors.cardWhite,
+    borderWidth: border.width,
+    borderColor: border.color,
+    ...elevation.badge,
+  },
+  bubbleMine: { borderBottomRightRadius: radii.sm, backgroundColor: colors.primaryContainer, borderColor: border.color },
+  bubbleTheirs: { borderBottomLeftRadius: radii.sm, backgroundColor: colors.card },
+  time: { ...type.labelCaps, color: colors.outlineVariant, alignSelf: 'flex-end', marginTop: 4, fontSize: 9 },
+  reactionSummary: { flexDirection: 'row', gap: 6, marginTop: 2 },
+  reactionBar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: space.sm,
+    paddingVertical: space.sm,
+    backgroundColor: colors.cardWhite,
+    marginHorizontal: space.screenEdge,
+    borderRadius: radii.pill,
+    borderWidth: border.width,
+    borderColor: border.color,
+    ...elevation.card,
+    marginBottom: space.xs,
+  },
+  reactionChip: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.card,
+    borderWidth: border.widthThin,
+    borderColor: border.color,
+  },
+  composer: {
+    paddingHorizontal: space.screenEdge,
+    paddingTop: space.sm,
+    gap: space.xs,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: colors.surface,
+  },
+  composeBtn: {
+    width: 44,
+    height: 48,
+    borderRadius: radii.md,
+    backgroundColor: colors.cardWhite,
+    borderWidth: border.width,
+    borderColor: border.color,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...elevation.badge,
+  },
+  input: {
+    flex: 1,
+    minHeight: 48,
+    maxHeight: 120,
+    backgroundColor: colors.cardWhite,
+    borderRadius: radii.pill,
+    borderWidth: border.width,
+    borderColor: border.color,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    color: colors.charcoal,
+    ...type.bodyMd,
+  },
+  sendBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primaryContainer,
+    borderWidth: border.width,
+    borderColor: border.color,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...elevation.badge,
+  },
+  micBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.tertiaryFixed,
+    borderWidth: border.width,
+    borderColor: border.color,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...elevation.badge,
+  },
+});

@@ -6,8 +6,13 @@ node_modules/
 # Expo
 .expo/
 dist/
+dist-check/
 web-build/
 expo-env.d.ts
+
+# local QA / build artifacts
+qa-*.png
+gradle-build.log
 
 # Native
 .kotlin/
@@ -31,6 +36,7 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
@@ -39,3 +45,8 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Release signing — NEVER commit these
+*.keystore
+!android/app/debug.keystore
+android/keystore.properties
