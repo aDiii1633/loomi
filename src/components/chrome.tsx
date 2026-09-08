@@ -1,5 +1,5 @@
 /** App chrome: neo-brutalist header, floating tab dock, bottom sheet, toasts, confirm. */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   BackHandler,
@@ -76,43 +76,60 @@ export function FloatingTabDock({
   onSelect: (name: string) => void;
 }) {
   const insets = useSafeAreaInsets();
+  const reducedMotion = useSettingsStore((s) => s.settings.reducedMotion);
+  const [trackW, setTrackW] = useState(0);
+  const activeIndex = Math.max(0, tabs.findIndex((t) => t.name === activeName));
+  const itemW = trackW > 0 ? trackW / tabs.length : 0;
+  const slide = useRef(new Animated.Value(0)).current;
+
+  // Capsule slides to the active tab on the UI thread; snaps under Reduce Motion.
+  useEffect(() => {
+    const to = activeIndex * itemW;
+    if (reducedMotion || itemW === 0) {
+      slide.setValue(to);
+      return;
+    }
+    Animated.spring(slide, {
+      toValue: to,
+      useNativeDriver: true,
+      stiffness: 220,
+      damping: 26,
+      mass: 0.9,
+    }).start();
+  }, [activeIndex, itemW, reducedMotion, slide]);
+
   return (
     <View style={[styles.dockWrap, { bottom: insets.bottom + space.sm }]} pointerEvents="box-none">
       <View style={styles.dock}>
-        {tabs.map((tab) => {
-          const active = tab.name === activeName;
-          return (
-            <Pressable
-              key={tab.name}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: active }}
-              accessibilityLabel={tab.label}
-              onPress={() => {
-                if (!active) haptic('light');
-                onSelect(tab.name);
-              }}
-              style={[
-                styles.dockItem,
-                active && styles.dockItemActive,
-              ]}
-            >
-              <Icon
-                name={tab.icon}
-                size={20}
-                color={active ? colors.charcoal : colors.inkVariant}
-              />
-              <Text
-                numberOfLines={1}
-                style={[
-                  styles.dockLabel,
-                  active && styles.dockLabelActive,
-                ]}
+        <View style={styles.dockTrack} onLayout={(e) => setTrackW(e.nativeEvent.layout.width)}>
+          {itemW > 0 ? (
+            <Animated.View
+              pointerEvents="none"
+              style={[styles.dockCapsule, { width: itemW, transform: [{ translateX: slide }] }]}
+            />
+          ) : null}
+          {tabs.map((tab) => {
+            const active = tab.name === activeName;
+            return (
+              <Pressable
+                key={tab.name}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={tab.label}
+                onPress={() => {
+                  if (!active) haptic('light');
+                  onSelect(tab.name);
+                }}
+                style={styles.dockItem}
               >
-                {tab.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+                <Icon name={tab.icon} size={20} color={active ? colors.charcoal : colors.inkVariant} />
+                <Text numberOfLines={1} style={[styles.dockLabel, active && styles.dockLabelActive]}>
+                  {tab.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -272,6 +289,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: space['2xs'],
   },
+  dockTrack: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  dockCapsule: {
+    position: 'absolute',
+    left: 0,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primaryContainer,
+    borderWidth: border.widthThin,
+    borderColor: border.color,
+    ...elevation.badge,
+  },
   dockItem: {
     flex: 1,
     height: 48,
@@ -280,12 +313,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 1,
     paddingHorizontal: 2,
-  },
-  dockItemActive: {
-    backgroundColor: colors.primaryContainer,
-    borderWidth: border.widthThin,
-    borderColor: border.color,
-    ...elevation.badge,
   },
   dockLabel: {
     ...type.labelCaps,
