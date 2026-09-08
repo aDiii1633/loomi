@@ -12,13 +12,16 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { Avatar } from '../../src/components/primitives';
 import { LoomiIllustration } from '../../src/components/illustrations/LoomiIllustration';
 import { Icon } from '../../src/components/Icon';
+import { ImageViewer } from '../../src/components/ImageViewer';
 import { VoicePlayer, VoiceRecorder } from '../../src/components/voice';
 import { captureMedia, pickMedia } from '../../src/components/mediaPicker';
+import { toast } from '../../src/components/toast';
 import { colors, radii, space, type, border, elevation } from '../../src/theme/tokens';
 import { useSessionStore } from '../../src/state/session';
 import { useChatStore } from '../../src/state/chat';
@@ -36,7 +39,10 @@ export default function ChatScreen() {
   const [draft, setDraft] = useState('');
   const [recording, setRecording] = useState(false);
   const [reactionFor, setReactionFor] = useState<string | null>(null);
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
   const listRef = useRef<FlatList<Message>>(null);
+
+  const activeMessage = reactionFor ? messages.find((m) => m.id === reactionFor) ?? null : null;
 
   useEffect(() => {
     refresh();
@@ -101,6 +107,7 @@ export default function ChatScreen() {
               selfId={self.id}
               partnerName={partner.name}
               onLongPress={() => setReactionFor(item.id)}
+              onOpenImage={setViewerUri}
               onToggleReaction={(emoji) => {
                 react(item.id, emoji);
                 setReactionFor(null);
@@ -133,6 +140,20 @@ export default function ChatScreen() {
                 <Text style={{ fontSize: 20 }}>{emoji}</Text>
               </Pressable>
             ))}
+            {activeMessage?.kind === 'text' && activeMessage.text ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Copy message"
+                onPress={() => {
+                  void Clipboard.setStringAsync(activeMessage.text ?? '');
+                  setReactionFor(null);
+                  toast('Copied', 'success');
+                }}
+                style={styles.reactionChip}
+              >
+                <Icon name="copy" size={18} color={colors.charcoal} />
+              </Pressable>
+            ) : null}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Delete message"
@@ -213,8 +234,18 @@ export default function ChatScreen() {
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <ImageViewer uri={viewerUri} visible={!!viewerUri} onClose={() => setViewerUri(null)} />
     </View>
   );
+}
+
+/** Sent/pending/failed marker on the user's own messages, derived from the
+ * row's local sync state (no extra network call). */
+function DeliveryTick({ state }: { state: Message['sync'] }) {
+  if (state === 'failed') return <Icon name="alert" size={11} color={colors.error} />;
+  if (state === 'synced') return <Icon name="check" size={11} color="rgba(37,37,37,0.55)" />;
+  return <Icon name="clock" size={11} color="rgba(37,37,37,0.4)" />;
 }
 
 function MessageBubble({
@@ -222,12 +253,14 @@ function MessageBubble({
   selfId,
   partnerName,
   onLongPress,
+  onOpenImage,
   onToggleReaction,
 }: {
   message: Message;
   selfId: string;
   partnerName: string;
   onLongPress: () => void;
+  onOpenImage: (uri: string) => void;
   onToggleReaction: (emoji: string) => void;
 }) {
   const mine = message.authorId === selfId;
@@ -274,7 +307,15 @@ function MessageBubble({
           <Text style={{ ...type.bodyMd, color: colors.ink }}>{message.text}</Text>
         ) : null}
         {message.kind === 'image' && mediaUri ? (
-          <Image source={{ uri: mediaUri }} style={{ width: 220, height: 220, borderRadius: radii.md }} contentFit="cover" transition={200} />
+          <Pressable
+            onPress={() => onOpenImage(mediaUri)}
+            onLongPress={onLongPress}
+            delayLongPress={280}
+            accessibilityRole="imagebutton"
+            accessibilityLabel="Open image full screen"
+          >
+            <Image source={{ uri: mediaUri }} style={{ width: 220, height: 220, borderRadius: radii.md }} contentFit="cover" transition={200} />
+          </Pressable>
         ) : null}
         {message.kind === 'video' && mediaUri ? <VideoBubble uri={mediaUri} /> : null}
         {message.kind === 'voice' && message.mediaId ? (
@@ -282,7 +323,10 @@ function MessageBubble({
             <VoiceBubble mediaId={message.mediaId} durationMs={message.durationMs} waveform={waveform} mine={mine} />
           </View>
         ) : null}
-        <Text style={[styles.time, mine && { color: 'rgba(37,37,37,0.55)' }]}>{formatTime(message.sentAt)}</Text>
+        <View style={styles.metaRow}>
+          <Text style={[styles.time, mine && { color: 'rgba(37,37,37,0.55)' }]}>{formatTime(message.sentAt)}</Text>
+          {mine ? <DeliveryTick state={message.sync} /> : null}
+        </View>
         {reactionEntries.length > 0 ? (
           <View style={styles.reactionSummary}>
             {reactionEntries.map(([emoji, users]) => (
@@ -362,7 +406,8 @@ const styles = StyleSheet.create({
   },
   bubbleMine: { borderBottomRightRadius: radii.sm, backgroundColor: colors.primaryContainer, borderColor: border.color },
   bubbleTheirs: { borderBottomLeftRadius: radii.sm, backgroundColor: colors.card },
-  time: { ...type.labelCaps, color: colors.outlineVariant, alignSelf: 'flex-end', marginTop: 4, fontSize: 9 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-end', marginTop: 4 },
+  time: { ...type.labelCaps, color: colors.outlineVariant, fontSize: 9 },
   reactionSummary: { flexDirection: 'row', gap: 6, marginTop: 2 },
   reactionBar: {
     flexDirection: 'row',
