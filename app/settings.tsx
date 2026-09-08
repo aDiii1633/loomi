@@ -1,9 +1,10 @@
 /** SETTINGS — notifications, haptics, privacy, vault security, data, about. */
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SubHeader, BottomSheet } from '../src/components/chrome';
 import { Button, Card, Input } from '../src/components/primitives';
+import { AnimatedToggle } from '../src/components/AnimatedToggle';
 import { Icon } from '../src/components/Icon';
 import { border, colors, elevation, space, type } from '../src/theme/tokens';
 import { useSettingsStore } from '../src/state/settings';
@@ -58,14 +59,7 @@ export default function SettingsScreen() {
         <Text style={{ ...type.labelLg, color: colors.charcoal }}>{label}</Text>
         {hint ? <Text style={{ ...type.bodySm, color: colors.inkVariant }}>{hint}</Text> : null}
       </View>
-      {onToggle ? (
-        <Switch
-          value={!!value}
-          onValueChange={onToggle}
-          trackColor={{ false: colors.surfaceContainerHighest, true: colors.primaryContainer }}
-          thumbColor={value ? colors.primary : '#FFFFFF'}
-        />
-      ) : null}
+      {onToggle ? <AnimatedToggle value={!!value} onValueChange={onToggle} /> : null}
     </View>
   );
 
