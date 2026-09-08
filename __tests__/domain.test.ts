@@ -1,7 +1,15 @@
 import { computeStreak, foldActivities, STREAK_MILESTONES } from '../src/domain/streakEngine';
 import { questionOfDay, questionState, isRevealed } from '../src/domain/questionEngine';
 import { scoreQuiz, scoreThisOrThat, scoreMemoryMatch, pickQuizQuestions } from '../src/domain/games';
-import { validateDayISO, validatePin, validateReminderDue, validateText, isDuplicateTitle } from '../src/domain/validation';
+import {
+  validateDayISO,
+  validatePin,
+  validateReminderDue,
+  validateText,
+  isDuplicateTitle,
+  validatePassword,
+  MIN_PASSWORD_LENGTH,
+} from '../src/domain/validation';
 import {
   toggleMilestoneDone,
   removeMilestone,
@@ -110,6 +118,14 @@ describe('validation', () => {
     expect(validateDayISO('2022-13-01').ok).toBe(false);
     expect(validateDayISO('2022-02-30').ok).toBe(false);
     expect(validateDayISO('not-a-date').ok).toBe(false);
+  });
+
+  it('accepts a 6-character password and rejects shorter ones', () => {
+    expect(MIN_PASSWORD_LENGTH).toBe(6);
+    expect(validatePassword('abcde').ok).toBe(false); // 5 chars
+    expect(validatePassword('abcdef').ok).toBe(true); // exactly 6
+    expect(validatePassword('a longer passphrase').ok).toBe(true);
+    expect(validatePassword('x'.repeat(129)).ok).toBe(false);
   });
 
   it('rejects weak PINs but accepts reasonable ones', () => {

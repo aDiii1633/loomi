@@ -6,6 +6,7 @@ import { useSignUp } from '@clerk/expo';
 import { Button, Card, ErrorText, Input } from '../../src/components/primitives';
 import { LoomiIllustration } from '../../src/components/illustrations/LoomiIllustration';
 import { clerkErrorMessage } from '../../src/auth/clerkError';
+import { MIN_PASSWORD_LENGTH, validatePassword } from '../../src/domain/validation';
 import { colors, space, type } from '../../src/theme/tokens';
 
 /** After the Clerk session is live, leave the auth stack. The (auth) group
@@ -36,6 +37,11 @@ export default function SignUpScreen() {
   const submitSignUp = async () => {
     if (!signUp || submitting) return;
     setError(null);
+    const pw = validatePassword(password);
+    if (!pw.ok) {
+      setError(pw.message);
+      return;
+    }
     setSubmitting(true);
     try {
       const { error: passwordError } = await signUp.password({
@@ -139,11 +145,11 @@ export default function SignUpScreen() {
             label="Password"
             value={password}
             onChangeText={setPassword}
-            placeholder="At least 8 characters"
+            placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
             secureTextEntry
             autoComplete="new-password"
           />
-          <Button label={submitting ? 'Creating account…' : 'Create account'} onPress={submitSignUp} loading={submitting} disabled={!email || password.length < 8 || !signUp} />
+          <Button label={submitting ? 'Creating account…' : 'Create account'} onPress={submitSignUp} loading={submitting} disabled={!email || password.length < MIN_PASSWORD_LENGTH || !signUp} />
         </Card>
 
         <View style={styles.footerRow}>

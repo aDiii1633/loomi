@@ -100,6 +100,29 @@ export function validateDayISO(
   return ok;
 }
 
+/**
+ * Minimum password length Loomi asks for at sign-up.
+ *
+ * IMPORTANT: Clerk enforces its own minimum server-side (Dashboard → User &
+ * Authentication → Password, default 8). If this value is lower than the
+ * Clerk instance setting, Clerk rejects passwords between the two lengths
+ * with a "password too short" error no matter what this check allows. To
+ * actually ship a 6-character minimum, the Clerk Dashboard setting must be
+ * lowered to 6 as well.
+ */
+export const MIN_PASSWORD_LENGTH = 6;
+export const MAX_PASSWORD_LENGTH = 128;
+
+export function validatePassword(value: string): ValidationResult {
+  if (value.length < MIN_PASSWORD_LENGTH) {
+    return fail(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+  }
+  if (value.length > MAX_PASSWORD_LENGTH) {
+    return fail(`Password is too long (max ${MAX_PASSWORD_LENGTH} characters).`);
+  }
+  return ok;
+}
+
 export function validatePin(pin: string): ValidationResult {
   if (!/^\d{4,8}$/.test(pin)) return fail('PIN must be 4 to 8 digits.');
   if (/^(\d)\1+$/.test(pin)) return fail("PIN can't repeat a single digit.");
