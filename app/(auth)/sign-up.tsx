@@ -6,6 +6,7 @@ import { useSignUp } from '@clerk/expo';
 import { Button, Card, ErrorText, Input } from '../../src/components/primitives';
 import { LoomiIllustration } from '../../src/components/illustrations/LoomiIllustration';
 import { clerkErrorMessage } from '../../src/auth/clerkError';
+import { GoogleAuthButton } from '../../src/auth/googleSSO';
 import { MIN_PASSWORD_LENGTH, validatePassword } from '../../src/domain/validation';
 import { colors, space, type } from '../../src/theme/tokens';
 
@@ -152,6 +153,14 @@ export default function SignUpScreen() {
           <Button label={submitting ? 'Creating account…' : 'Create account'} onPress={submitSignUp} loading={submitting} disabled={!email || password.length < MIN_PASSWORD_LENGTH || !signUp} />
         </Card>
 
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <GoogleAuthButton onSuccess={() => router.replace(POST_AUTH_ROUTE)} />
+
         <View style={styles.footerRow}>
           <Text style={styles.footerText}>Already have an account?</Text>
           <Text style={styles.footerLink} onPress={() => router.push('/(auth)/sign-in')}>
@@ -169,6 +178,9 @@ const styles = StyleSheet.create({
   hero: { alignItems: 'center', marginBottom: space.xl, gap: space.xs },
   title: { ...type.headlineLg, color: colors.charcoal, marginTop: space.sm },
   subtitle: { ...type.bodyMd, color: colors.inkVariant, textAlign: 'center', paddingHorizontal: space.lg },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginVertical: space.lg },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.outlineVariant },
+  dividerText: { ...type.labelMd, color: colors.inkVariant },
   footerRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: space.lg },
   footerText: { ...type.bodyMd, color: colors.inkVariant },
   footerLink: { ...type.bodyMd, color: colors.primary, fontFamily: 'PlusJakartaSans_700Bold' },

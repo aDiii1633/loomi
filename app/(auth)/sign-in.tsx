@@ -6,7 +6,10 @@ import { useSignIn } from '@clerk/expo';
 import { Button, Card, ErrorText, Input } from '../../src/components/primitives';
 import { LoomiIllustration } from '../../src/components/illustrations/LoomiIllustration';
 import { clerkErrorMessage } from '../../src/auth/clerkError';
+import { GoogleAuthButton } from '../../src/auth/googleSSO';
 import { colors, space, type } from '../../src/theme/tokens';
+
+const POST_AUTH_ROUTE = '/(auth)/link-couple' as const;
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -35,7 +38,7 @@ export default function SignInScreen() {
         // Leaving the auth stack. The (auth) group layout forwards a
         // signed-in + already-linked user straight to the app; a user with
         // no couple yet lands on link-couple, which is correct.
-        router.replace('/(auth)/link-couple');
+        router.replace(POST_AUTH_ROUTE);
       } else {
         setError('Additional verification is required for this account.');
       }
@@ -77,6 +80,14 @@ export default function SignInScreen() {
           <Button label={submitting ? 'Signing in…' : 'Sign in'} onPress={submit} loading={submitting} disabled={!email || !password || !signIn} />
         </Card>
 
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <GoogleAuthButton onSuccess={() => router.replace(POST_AUTH_ROUTE)} />
+
         <View style={styles.footerRow}>
           <Text style={styles.footerText}>New to Loomi?</Text>
           <Text style={styles.footerLink} onPress={() => router.push('/(auth)/sign-up')}>
@@ -94,6 +105,9 @@ const styles = StyleSheet.create({
   hero: { alignItems: 'center', marginBottom: space.xl, gap: space.xs },
   title: { ...type.headlineLg, color: colors.charcoal, marginTop: space.sm },
   subtitle: { ...type.bodyMd, color: colors.inkVariant, textAlign: 'center', paddingHorizontal: space.lg },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginVertical: space.lg },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.outlineVariant },
+  dividerText: { ...type.labelMd, color: colors.inkVariant },
   footerRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: space.lg },
   footerText: { ...type.bodyMd, color: colors.inkVariant },
   footerLink: { ...type.bodyMd, color: colors.primary, fontFamily: 'PlusJakartaSans_700Bold' },
