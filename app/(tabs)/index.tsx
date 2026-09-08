@@ -113,6 +113,17 @@ export default function HomeScreen() {
               {daysTogether(couple.anniversaryISO)} days together · Lv. {couple.level}
             </Text>
           </View>
+
+          {/* Streak is the headline reason to open Loomi — give it weight, in
+              the hero, above the mascot. */}
+          <FadeSlideIn delay={40}>
+            <StreakBanner
+              current={streak?.current ?? 0}
+              done={!!streak?.qualifiesToday}
+              onPress={() => router.push('/streak')}
+            />
+          </FadeSlideIn>
+
           <FadeSlideIn>
             <View style={styles.heroMascotRow}>
               <PaoAndLy size={116} />
@@ -153,26 +164,14 @@ export default function HomeScreen() {
             />
           </FadeSlideIn>
 
-          {streak || showUpcomingModule ? (
-            <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.lg }}>
-              {streak ? (
-                <SmallModule
-                  style={{ flex: 1 }}
-                  icon={glyphs.fire}
-                  label={`${streak.current}-day streak`}
-                  sub={streak.qualifiesToday ? 'Today done' : '1 ritual left'}
-                  onPress={() => router.push('/streak')}
-                />
-              ) : null}
-              {showUpcomingModule ? (
-                <SmallModule
-                  style={{ flex: 1 }}
-                  icon={glyphs.gift}
-                  label={nextDate!.title}
-                  sub={nextDate!.days === 0 ? 'Today' : `in ${nextDate!.days}d`}
-                  onPress={() => router.push('/dates')}
-                />
-              ) : null}
+          {showUpcomingModule ? (
+            <View style={{ marginTop: space.lg }}>
+              <SmallModule
+                icon={glyphs.gift}
+                label={nextDate!.title}
+                sub={nextDate!.days === 0 ? 'Today' : `in ${nextDate!.days}d`}
+                onPress={() => router.push('/dates')}
+              />
             </View>
           ) : null}
         </View>
@@ -346,6 +345,27 @@ function AnswerPreview({ name, dotColor, text }: { name: string; dotColor: strin
   );
 }
 
+function StreakBanner({ current, done, onPress }: { current: number; done: boolean; onPress: () => void }) {
+  return (
+    <Card padding="compact" onPress={onPress} style={styles.streakBanner}>
+      <View style={styles.streakFlame}>
+        <Icon name={glyphs.fire} size={22} color={colors.primary} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+          <Text style={styles.streakNumber}>{current}</Text>
+          <Text style={styles.streakUnit}>day{current === 1 ? '' : 's'}</Text>
+        </View>
+        <Text style={styles.streakCaption}>Your streak together</Text>
+      </View>
+      <View style={[styles.streakStatus, done && styles.streakStatusDone]}>
+        <Icon name={done ? 'check' : 'zap'} size={13} color={colors.charcoal} />
+        <Text style={styles.streakStatusText}>{done ? 'Today done' : '1 ritual left'}</Text>
+      </View>
+    </Card>
+  );
+}
+
 function SmallModule({
   icon,
   label,
@@ -469,4 +489,37 @@ const styles = StyleSheet.create({
     borderColor: border.color,
     padding: space.sm,
   },
+  streakBanner: {
+    marginTop: space.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    backgroundColor: colors.cardWhite,
+  },
+  streakFlame: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.tertiaryFixed,
+    borderWidth: border.widthThin,
+    borderColor: border.color,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  streakNumber: { ...type.displayLgMobile, color: colors.charcoal },
+  streakUnit: { ...type.labelLg, color: colors.charcoal },
+  streakCaption: { ...type.bodySm, color: colors.inkVariant },
+  streakStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: space.sm,
+    paddingVertical: 6,
+    borderRadius: radii.pill,
+    backgroundColor: colors.lightMint,
+    borderWidth: border.widthThin,
+    borderColor: border.color,
+  },
+  streakStatusDone: { backgroundColor: colors.primaryContainer },
+  streakStatusText: { ...type.labelMd, color: colors.charcoal },
 });
