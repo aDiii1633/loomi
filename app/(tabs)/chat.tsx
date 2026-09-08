@@ -22,6 +22,7 @@ import { captureMedia, pickMedia } from '../../src/components/mediaPicker';
 import { colors, radii, space, type, border, elevation } from '../../src/theme/tokens';
 import { useSessionStore } from '../../src/state/session';
 import { useChatStore } from '../../src/state/chat';
+import { useCoupleRealtime } from '../../src/data/backend/realtime';
 import { getMedia } from '../../src/data/media';
 import { formatTime } from '../../src/domain/datetime';
 import type { Message } from '../../src/domain/types';
@@ -37,16 +38,29 @@ export default function ChatScreen() {
   const [recording, setRecording] = useState(false);
   const [reactionFor, setReactionFor] = useState<string | null>(null);
   const listRef = useRef<FlatList<Message>>(null);
+  const coupleId = useSessionStore((s) => s.couple?.id ?? null);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
+  // Live partner messages. The channel is couple-scoped server-side
+  // (filter couple_id=eq.<id> + RLS), so no cross-couple data can arrive.
+  useCoupleRealtime(coupleId, (table) => {
+    if (table === 'messages') void refresh();
+  });
+
+  // On an `inverted` list the newest row is index 0 and sits at the visual
+  // bottom, so revealing a just-sent message means scrolling to offset 0 —
+  // NOT scrollToEnd(), which on an inverted list jumps to the OLDEST message
+  // and is what made the conversation appear to "move upward" on send.
+  const scrollToLatest = () => listRef.current?.scrollToOffset({ offset: 0, animated: true });
+
   const send = () => {
     const text = draft.trim();
     if (!text) return;
     setDraft('');
-    sendText(text).then(() => listRef.current?.scrollToEnd({ animated: true })).catch(() => setDraft(text));
+    sendText(text).then(scrollToLatest).catch(() => setDraft(text));
   };
 
   if (!self || !partner) return null;
@@ -72,7 +86,7 @@ export default function ChatScreen() {
         <FlatList
           ref={listRef}
           data={messages}
-          inverted
+          inverted={messages.length > 0}
           keyExtractor={(m) => m.id}
           ListEmptyComponent={
             loading ? null : (
@@ -96,7 +110,15 @@ export default function ChatScreen() {
               }}
             />
           )}
-          contentContainerStyle={{ paddingHorizontal: space.screenEdge, paddingBottom: space.sm, flexGrow: 1, justifyContent: 'flex-end' }}
+          contentContainerStyle={{
+            paddingHorizontal: space.screenEdge,
+            paddingBottom: space.sm,
+            flexGrow: 1,
+            // Inverted space is visually flipped: 'flex-start' here pins a
+            // short conversation to the on-screen bottom. When not inverted
+            // (empty state) center the illustration instead.
+            justifyContent: messages.length > 0 ? 'flex-start' : 'center',
+          }}
         />
 
         {reactionFor ? (
