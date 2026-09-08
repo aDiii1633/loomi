@@ -28,14 +28,34 @@ function rowToMessage(r: MessageRow): Message {
   };
 }
 
-export async function listMessages(coupleId: string | null, limit = 200): Promise<Message[]> {
-  if (!coupleId) return [];
+export const MESSAGE_PAGE_SIZE = 40;
+
+/**
+ * One page of messages, NEWEST FIRST (index 0 = most recent). That order is
+ * what the chat screen's `inverted` FlatList expects — index 0 sits at the
+ * visual bottom. Pass `beforeSentAt` (the oldest loaded message's sentAt) to
+ * fetch the next older page. `hasMore` is true when a further page exists.
+ */
+export async function listMessages(
+  coupleId: string | null,
+  opts: { limit?: number; beforeSentAt?: number } = {}
+): Promise<{ rows: Message[]; hasMore: boolean }> {
+  if (!coupleId) return { rows: [], hasMore: false };
+  const limit = opts.limit ?? MESSAGE_PAGE_SIZE;
   const db = await getDb();
+  const params: (string | number)[] = [coupleId];
+  let where = 'couple_id = ? AND deleted_at IS NULL';
+  if (opts.beforeSentAt != null) {
+    where += ' AND sent_at < ?';
+    params.push(opts.beforeSentAt);
+  }
+  params.push(limit + 1); // fetch one extra to detect a further page
   const rows = await db.getAllAsync<MessageRow>(
-    `SELECT * FROM messages WHERE couple_id = ? AND deleted_at IS NULL ORDER BY sent_at DESC LIMIT ?`,
-    [coupleId, limit]
+    `SELECT * FROM messages WHERE ${where} ORDER BY sent_at DESC LIMIT ?`,
+    params
   );
-  return rows.map(rowToMessage).reverse();
+  const hasMore = rows.length > limit;
+  return { rows: rows.slice(0, limit).map(rowToMessage), hasMore };
 }
 
 export async function insertMessage(

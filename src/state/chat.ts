@@ -13,11 +13,15 @@ import { pullSince, pushDirty } from '../data/backend/sync';
 interface ChatState {
   loaded: boolean;
   loading: boolean;
+  loadingOlder: boolean;
+  hasMore: boolean;
   error: string | null;
   messages: Message[];
   sending: boolean;
 
   refresh: () => Promise<void>;
+  /** Append the next older page (chat is newest-first). No-op when hasMore is false. */
+  loadOlder: () => Promise<void>;
   sendText: (text: string) => Promise<void>;
   sendMedia: (params: { uri: string; kind: 'image' | 'video'; width?: number; height?: number; fileSize?: number }) => Promise<void>;
   sendVoice: (params: { uri: string; durationMs: number; fileSize?: number; waveform: number[] }) => Promise<void>;
@@ -28,6 +32,8 @@ interface ChatState {
 export const useChatStore = create<ChatState>((set, get) => ({
   loaded: false,
   loading: false,
+  loadingOlder: false,
+  hasMore: false,
   error: null,
   messages: [],
   sending: false,
@@ -36,18 +42,37 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const ids = currentIdentity();
     if (!ids) {
       // No linked couple yet — an honest empty conversation, not fake data.
-      set({ messages: [], loaded: true, loading: false, error: null });
+      set({ messages: [], loaded: true, loading: false, hasMore: false, error: null });
       return;
     }
     set({ loading: true, error: null });
     try {
       // Cloud-first merge, local read: partner changes that arrived while we
-      // were away are pulled into SQLite before rendering.
+      // were away are pulled into SQLite before rendering. Only the most
+      // recent page is loaded; older messages page in on scroll.
       await pullSince('messages', ids.coupleId);
-      const messages = await listMessages(ids.coupleId);
-      set({ messages, loaded: true, loading: false });
+      const { rows, hasMore } = await listMessages(ids.coupleId);
+      set({ messages: rows, hasMore, loaded: true, loading: false });
     } catch (e) {
       set({ loading: false, error: e instanceof Error ? e.message : 'Could not load the conversation.' });
+    }
+  },
+
+  loadOlder: async () => {
+    const { messages, hasMore, loadingOlder, loading } = get();
+    if (!hasMore || loadingOlder || loading || messages.length === 0) return;
+    const ids = currentIdentity();
+    if (!ids) return;
+    set({ loadingOlder: true });
+    try {
+      const oldest = messages[messages.length - 1];
+      const { rows, hasMore: more } = await listMessages(ids.coupleId, { beforeSentAt: oldest.sentAt });
+      // De-dupe on id in case a boundary message repeats.
+      const seen = new Set(messages.map((m) => m.id));
+      const merged = [...messages, ...rows.filter((r) => !seen.has(r.id))];
+      set({ messages: merged, hasMore: more, loadingOlder: false });
+    } catch {
+      set({ loadingOlder: false });
     }
   },
 

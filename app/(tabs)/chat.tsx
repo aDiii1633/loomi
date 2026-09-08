@@ -1,6 +1,7 @@
 /** CHAT — one-to-one conversation: text, media, voice notes, reactions. */
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   KeyboardAvoidingView,
@@ -35,7 +36,7 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const self = useSessionStore((s) => s.self);
   const partner = useSessionStore((s) => s.partner);
-  const { messages, loading, error, sending, refresh, sendText, sendMedia, sendVoice, react, remove } = useChatStore();
+  const { messages, loading, loadingOlder, hasMore, error, sending, refresh, loadOlder, sendText, sendMedia, sendVoice, react, remove } = useChatStore();
   const [draft, setDraft] = useState('');
   const [recording, setRecording] = useState(false);
   const [reactionFor, setReactionFor] = useState<string | null>(null);
@@ -91,6 +92,11 @@ export default function ChatScreen() {
           data={messages}
           inverted={messages.length > 0}
           keyExtractor={(m) => m.id}
+          onEndReached={hasMore ? loadOlder : undefined}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={
+            loadingOlder ? <ActivityIndicator style={{ paddingVertical: space.md }} color={colors.primary} /> : null
+          }
           ListEmptyComponent={
             loading ? null : (
               <View style={styles.emptyWrap}>
