@@ -1,0 +1,13 @@
+{
+  "name": "Loomi",
+  "short_name": "Loomi",
+  "description": "A private space for two people to talk, play, remember, and grow together.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8E8",
+  "theme_color": "#FFF8E8",
+  "icons": [
+    { "src": "assets/img/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/img/og-icon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

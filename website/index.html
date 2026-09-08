@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loomi — A private space for two people to talk, play, remember, and grow together</title>
+  <meta name="description" content="Loomi gives two people one private place to talk, remember, play, plan and grow together — daily questions, shared memories, games, a private vault, and more. Coming soon to Google Play." />
+
+  <!-- Canonical / OG placeholders — SITE_URL is a config value, not a real
+       registered domain yet. Swap before deploying to production. See
+       script.js CONFIG.SITE_URL and the final report. -->
+  <link rel="canonical" href="https://loomi.vercel.app/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Loomi — Your little world, together" />
+  <meta property="og:description" content="One private place for two people to talk, remember, play, plan and grow together." />
+  <meta property="og:image" content="https://loomi.vercel.app/assets/img/og-cover.png" />
+  <meta property="og:url" content="https://loomi.vercel.app/" />
+  <meta property="og:site_name" content="Loomi" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Loomi — Your little world, together" />
+  <meta name="twitter:description" content="One private place for two people to talk, remember, play, plan and grow together." />
+  <meta name="twitter:image" content="https://loomi.vercel.app/assets/img/og-cover.png" />
+  <meta name="theme-color" content="#FFF8E8" />
+  <meta name="robots" content="index, follow" />
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/img/favicon-192.png" />
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MobileApplication",
+    "name": "Loomi",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "Android",
+    "description": "A private space for two people to talk, remember, play, plan and grow together.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="navbar">
+    <div class="wrap navbar-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Loomi
+      </a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="#download">Download</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-primary nav-cta" href="#download">Download Loomi</a>
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+      </button>
+    </div>
+    <nav id="mobileMenu" class="mobile-menu" hidden aria-label="Mobile">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#download">Download</a>
+      <a class="btn btn-primary" href="#download">Download Loomi</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <span id="top"></span>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">For two people, not a crowd</span>
+          <h1>Your little world, together.</h1>
+          <p class="lede">Loomi gives you and your person one private place to talk, remember, play, plan and grow together — no feed, no followers, no strangers.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="#download">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.7c-.4.4-.6.9-.6 1.5v15.6c0 .6.2 1.1.6 1.5l.1.1L13 12 3.7 2.6l-.1.1Z"/><path d="m13 12 3.5-3.5-8.6-4.9c-.5-.3-1-.3-1.4-.1L13 12Z"/><path d="m13 12-6.5 6.5c.4.2.9.2 1.4-.1l8.6-4.9L13 12Z"/><path d="M16.5 8.5 20.3 10.7c.9.5.9 1.9 0 2.4l-3.8 2.2-3.5-3.4 3.5-3.4Z"/></svg>
+              Get Loomi
+            </a>
+            <a class="btn btn-ghost btn-lg" href="#how-it-works">See how it works</a>
+          </div>
+          <div class="hero-trust">
+            <span class="trust-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3 7.5 8 9 5-1.5 8-4.5 8-9V6l-8-3Z"/></svg> Just the two of you</span>
+            <span class="trust-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z"/></svg> Built for couples</span>
+            <span class="trust-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Your data stays yours</span>
+          </div>
+        </div>
+        <div class="hero-art">
+          <div class="hero-art-frame">
+            <img src="assets/img/hero-couple.webp" width="920" height="1232" alt="Pao and Ly, Loomi's mascot couple, walking hand in hand with hearts floating around them" fetchpriority="high" />
+          </div>
+          <span class="hero-sticker s1">✦ Daily questions</span>
+          <span class="hero-sticker s2">🔥 Streaks</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MARQUEE ================= -->
+    <div class="strip" aria-hidden="true">
+      <div class="strip-track">
+        <span><span class="dot"></span>Daily Questions</span>
+        <span><span class="dot"></span>Shared Memories</span>
+        <span><span class="dot"></span>Mini Games</span>
+        <span><span class="dot"></span>Private Vault</span>
+        <span><span class="dot"></span>Bucket List</span>
+        <span><span class="dot"></span>Streaks</span>
+        <span><span class="dot"></span>Goals</span>
+        <span><span class="dot"></span>Daily Questions</span>
+        <span><span class="dot"></span>Shared Memories</span>
+        <span><span class="dot"></span>Mini Games</span>
+        <span><span class="dot"></span>Private Vault</span>
+        <span><span class="dot"></span>Bucket List</span>
+        <span><span class="dot"></span>Streaks</span>
+        <span><span class="dot"></span>Goals</span>
+      </div>
+    </div>
+
+    <!-- ================= PRODUCT INTRO ================= -->
+    <section class="intro reveal">
+      <div class="wrap">
+        <span class="eyebrow">What Loomi is</span>
+        <h2 class="section-heading">Every app you share is public. Loomi is just for two.</h2>
+        <p class="section-sub">Not a social feed, not a group chat. Loomi is a couple's own small world — one thread, one calendar, one vault, one streak, built around exactly two people.</p>
+        <div class="intro-grid">
+          <div class="intro-card">
+            <span class="num">01</span>
+            <h3>One private thread</h3>
+            <p>Text and voice notes with your person — no group, no algorithm, no ads between you.</p>
+          </div>
+          <div class="intro-card">
+            <span class="num">02</span>
+            <h3>A little world to fill</h3>
+            <p>Memories, journals, goals, bucket lists and important dates — all shared, all yours.</p>
+          </div>
+          <div class="intro-card">
+            <span class="num">03</span>
+            <h3>Built to keep showing up</h3>
+            <p>Daily questions, mood check-ins and streaks make it easy to stay close, every day.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FEATURES ================= -->
+    <section id="features">
+      <div class="wrap">
+        <span class="eyebrow">Features</span>
+        <h2 class="section-heading">A little world, full of little rooms.</h2>
+        <p class="section-sub">Every feature below is live in the Loomi app today — not a roadmap slide.</p>
+
+        <!-- Daily Questions -->
+        <div class="feature-row reveal">
+          <div class="feature-copy">
+            <span class="eyebrow" style="background:var(--soft-lavender)">Daily Questions</span>
+            <h3>One question a day. Answer blind, reveal together.</h3>
+            <p>Every day brings a new question for the two of you. You each answer without seeing the other's response — then reveal together, at the same time.</p>
+            <ul class="feature-list">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Neither of you sees the other's answer early</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>A new prompt every day</li>
+            </ul>
+          </div>
+          <div class="feature-art">
+            <div class="reveal-diagram">
+              <div class="reveal-step"><span class="avatar pao"></span><div><strong>You</strong><span>answer privately</span></div></div>
+              <div class="reveal-arrow" aria-hidden="true">＋</div>
+              <div class="reveal-step"><span class="avatar ly"></span><div><strong>Your person</strong><span>answers privately</span></div></div>
+              <div class="reveal-arrow" aria-hidden="true">↓</div>
+              <div class="reveal-both">Both reveal, together ✦</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat + Voice -->
+        <div class="feature-row reverse reveal">
+          <div class="feature-copy">
+            <span class="eyebrow" style="background:var(--soft-pink)">Chat &amp; Voice Notes</span>
+            <h3>One thread. Just the two of you.</h3>
+            <p>A running conversation that's only ever between you and your person — with text and voice notes, no group chats or read-receipt games.</p>
+          </div>
+          <div class="feature-art">
+            <div class="art-card bg-pink"><img src="assets/img/feature-chat.webp" width="672" height="900" loading="lazy" alt="Pao and Ly sitting together with a heart between them" /></div>
+          </div>
+        </div>
+
+        <!-- Games -->
+        <div class="feature-row reveal">
+          <div class="feature-copy">
+            <span class="eyebrow" style="background:var(--sunny-yellow)">Games</span>
+            <h3>Play together, right in the app.</h3>
+            <p>A set of built-in mini-games and prompts — like Truth or Dare — for the moments you just want to play instead of plan.</p>
+          </div>
+          <div class="feature-art">
+            <div class="art-card bg-yellow"><img src="assets/img/feature-games.webp" width="672" height="900" loading="lazy" alt="Pao and Ly playing a video game together" /></div>
+          </div>
+        </div>
+
+        <!-- Memories + Timeline -->
+        <div class="feature-row reverse reveal">
+          <div class="feature-copy">
+            <span class="eyebrow" style="background:var(--powder-blue)">Memories &amp; Timeline</span>
+            <h3>Everywhere you've been, in one place.</h3>
+            <p>Save photos and moments as memories, and watch your relationship's timeline build itself as you go.</p>
+          </div>
+          <div class="feature-art">
+            <div class="art-card bg-blue"><img src="assets/img/feature-memories.webp" width="672" height="900" loading="lazy" alt="Pao and Ly looking at floating photos together" /></div>
+          </div>
+        </div>
+
+        <!-- Mood + Streak -->
+        <div class="feature-row reveal">
+          <div class="feature-copy">
+            <span class="eyebrow" style="background:var(--soft-sage)">Mood &amp; Streaks</span>
+            <h3>Check in daily. Watch your streak grow.</h3>
+            <p>Log how you're feeling, see how your person is feeling, and build a daily connection streak just by showing up for each other.</p>
+          </div>
+          <div class="feature-art">
+            <div class="art-card bg-sage"><img src="assets/img/feature-streak.webp" width="672" height="900" loading="lazy" alt="Pao and Ly fist-bumping in celebration" /></div>
+          </div>
+        </div>
+
+        <!-- Goals, Bucket List, Reminders, Dates -->
+        <div class="feature-row reverse reveal">
+          <div class="feature-copy">
+            <span class="eyebrow" style="background:var(--peach)">Goals, Bucket List &amp; Dates</span>
+            <h3>Plan your life together, not just your day.</h3>
+            <p>Set shared goals with milestones, keep a bucket list of adventures, and never miss an anniversary with shared reminders and important dates.</p>
+          </div>
+          <div class="feature-art">
+            <div class="art-card bg-peach"><img src="assets/img/feature-goals.webp" width="672" height="900" loading="lazy" alt="Pao and Ly climbing steps together toward a goal" /></div>
+          </div>
+        </div>
+
+        <!-- Journal + Bucket -->
+        <div class="feature-row reveal">
+          <div class="feature-copy">
+            <span class="eyebrow" style="background:var(--soft-lavender)">Journal &amp; Bucket List</span>
+            <h3>Write it down. Dream it up.</h3>
+            <p>Keep a shared journal for the little things worth remembering, and a bucket list for the adventures you're still planning.</p>
+          </div>
+          <div class="feature-art">
+            <div class="art-card bg-lavender"><img src="assets/img/feature-bucket.webp" width="672" height="900" loading="lazy" alt="Pao and Ly holding a basket of adventure items" /></div>
+          </div>
+        </div>
+
+        <!-- Vault -->
+        <div class="feature-row reverse reveal">
+          <div class="feature-copy">
+            <span class="eyebrow" style="background:var(--primary-container)">Private Vault</span>
+            <h3>Some things stay just between you.</h3>
+            <p>A PIN- and biometric-locked vault for the things you'd rather keep away from a shared photo roll or a borrowed phone.</p>
+          </div>
+          <div class="feature-art">
+            <div class="art-card bg-mint"><img src="assets/img/feature-vault.webp" width="760" height="1018" loading="lazy" alt="Pao and Ly opening a glowing keepsake box together" /></div>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="feature-row reveal">
+          <div class="feature-copy">
+            <span class="eyebrow" style="background:var(--powder-blue)">Location</span>
+            <h3>Share where you are — only when you choose to.</h3>
+            <p>Location sharing is completely opt-in. Turn it on when you want your person to see where you are, and off in one tap.</p>
+          </div>
+          <div class="feature-art">
+            <div class="art-card bg-blue"><img src="assets/img/feature-location.webp" width="760" height="1018" loading="lazy" alt="Pao and Ly walking together down a path" /></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= HOW IT WORKS ================= -->
+    <section id="how-it-works">
+      <div class="wrap">
+        <span class="eyebrow">How it works</span>
+        <h2 class="section-heading">Three steps. That's it.</h2>
+        <div class="steps-grid">
+          <div class="step-card reveal">
+            <span class="step-num">01</span>
+            <h3>Create your Loomi account</h3>
+            <p>Sign up with your email in under a minute — no group, no public profile, just you.</p>
+          </div>
+          <div class="step-card reveal">
+            <span class="step-num">02</span>
+            <h3>Connect with your person</h3>
+            <p>Send them a one-time invite code. Once they accept, your two accounts become one couple.</p>
+          </div>
+          <div class="step-card reveal">
+            <span class="step-num">03</span>
+            <h3>Build your little world together</h3>
+            <p>Answer your first daily question, save your first memory, and let the streak begin.</p>
+          </div>
+        </div>
+        <div class="step-connect-art reveal">
+          <img src="assets/img/how-connect.webp" width="672" height="900" loading="lazy" alt="Pao handing an invitation card to Ly" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= APP SHOWCASE ================= -->
+    <section id="showcase" style="background:var(--card); border-top:2px solid var(--charcoal); border-bottom:2px solid var(--charcoal);">
+      <div class="wrap">
+        <span class="eyebrow">Inside the app</span>
+        <h2 class="section-heading">A quick look around Loomi.</h2>
+        <p class="section-sub">Simplified previews of Loomi's real screens and navigation — not final pixel screenshots, but the actual structure of the app.</p>
+        <div class="showcase-scroller reveal">
+          <div class="device">
+            <div class="device-notch"></div>
+            <div class="device-screen">
+              <div class="device-topbar">Home</div>
+              <div class="device-body">
+                <div class="device-block filled">Today's streak: 12 🔥</div>
+                <div class="device-block">Daily question waiting</div>
+                <div class="device-row"><div class="device-block pink">Mood</div><div class="device-block yellow">Memories</div></div>
+                <div class="device-block tall">Upcoming: Anniversary in 9 days</div>
+              </div>
+            </div>
+            <p class="device-caption">Home</p>
+          </div>
+          <div class="device">
+            <div class="device-notch"></div>
+            <div class="device-screen">
+              <div class="device-topbar">Chat</div>
+              <div class="device-body">
+                <div class="device-block">Good morning ☀️</div>
+                <div class="device-block filled">miss you already</div>
+                <div class="device-block">🎙 voice note · 0:14</div>
+                <div class="device-block tall"></div>
+              </div>
+            </div>
+            <p class="device-caption">Chat</p>
+          </div>
+          <div class="device">
+            <div class="device-notch"></div>
+            <div class="device-screen">
+              <div class="device-topbar">Daily Question</div>
+              <div class="device-body">
+                <div class="device-block blue">"What made you smile today?"</div>
+                <div class="device-block">Your answer: locked 🔒</div>
+                <div class="device-block">Their answer: locked 🔒</div>
+                <div class="device-block filled tall">Reveal at 8:00 PM</div>
+              </div>
+            </div>
+            <p class="device-caption">Daily Question</p>
+          </div>
+          <div class="device">
+            <div class="device-notch"></div>
+            <div class="device-screen">
+              <div class="device-topbar">Memories</div>
+              <div class="device-body">
+                <div class="device-row"><div class="device-block pink">📷</div><div class="device-block yellow">📷</div></div>
+                <div class="device-row"><div class="device-block blue">📷</div><div class="device-block filled">📷</div></div>
+                <div class="device-block tall">124 memories saved</div>
+              </div>
+            </div>
+            <p class="device-caption">Memories</p>
+          </div>
+          <div class="device">
+            <div class="device-notch"></div>
+            <div class="device-screen">
+              <div class="device-topbar">Vault 🔒</div>
+              <div class="device-body">
+                <div class="device-block">Enter PIN</div>
+                <div class="device-block">● ● ● ●</div>
+                <div class="device-block filled">Unlock with fingerprint</div>
+                <div class="device-block tall"></div>
+              </div>
+            </div>
+            <p class="device-caption">Private Vault</p>
+          </div>
+        </div>
+        <p class="showcase-note">Scroll to see more →</p>
+      </div>
+    </section>
+
+    <!-- ================= PRIVACY ================= -->
+    <section id="privacy" class="privacy-section">
+      <div class="wrap">
+        <span class="eyebrow">Privacy &amp; security</span>
+        <h2 class="section-heading">Private by design. Not by promise.</h2>
+        <p class="section-sub">Your relationship is yours. Here's exactly what that means today.</p>
+        <div class="privacy-grid">
+          <div class="privacy-card reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3 7.5 8 9 5-1.5 8-4.5 8-9V6l-8-3Z"/></svg>
+            <h3>Secure sign-in</h3>
+            <p>Accounts are authenticated through Clerk, a dedicated identity provider — Loomi never stores your password.</p>
+          </div>
+          <div class="privacy-card reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z"/></svg>
+            <h3>Couple-level isolation</h3>
+            <p>Database rules enforce that only the two people in a couple can ever read or write that couple's data.</p>
+          </div>
+          <div class="privacy-card reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <h3>PIN + biometric vault</h3>
+            <p>The Vault is locked behind a PIN and, where supported, your device's fingerprint or face unlock.</p>
+          </div>
+          <div class="privacy-card reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c4.4-3 7-6.5 7-10.5A7 7 0 0 0 5 10.5C5 14.5 7.6 18 12 21Z"/><circle cx="12" cy="10.5" r="2.5"/></svg>
+            <h3>Location is opt-in</h3>
+            <p>Location is off by default. Turning it on — and off — is always your choice, in the app, in one tap.</p>
+          </div>
+        </div>
+        <p class="privacy-honesty">Being precise matters to us: Loomi does not currently use end-to-end encryption or a zero-knowledge architecture. What's described above is what's actually implemented today — we'll update this page as that changes.</p>
+      </div>
+    </section>
+
+    <!-- ================= DOWNLOAD ================= -->
+    <section id="download" class="download-section">
+      <div class="wrap download-grid">
+        <div class="download-copy">
+          <h2>Make your little world yours.</h2>
+          <p>Loomi is finishing up before it launches on Google Play. Tap below to check the latest status.</p>
+          <div class="download-actions">
+            <button class="play-badge" id="downloadBtn" type="button" aria-describedby="downloadStatus">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.7c-.4.4-.6.9-.6 1.5v15.6c0 .6.2 1.1.6 1.5l.1.1L13 12 3.7 2.6l-.1.1Z"/><path d="m13 12 3.5-3.5-8.6-4.9c-.5-.3-1-.3-1.4-.1L13 12Z"/><path d="m13 12-6.5 6.5c.4.2.9.2 1.4-.1l8.6-4.9L13 12Z"/><path d="M16.5 8.5 20.3 10.7c.9.5.9 1.9 0 2.4l-3.8 2.2-3.5-3.4 3.5-3.4Z"/></svg>
+              <span class="lines"><small>Coming soon to</small><strong>Google Play</strong></span>
+            </button>
+          </div>
+          <p class="download-status" id="downloadStatus" role="status" aria-live="polite"></p>
+        </div>
+        <div class="download-art">
+          <img src="assets/img/download-celebrate.webp" width="760" height="1018" loading="lazy" alt="Pao and Ly jumping excitedly in celebration" />
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>Loomi</a>
+          <p>A private space for two people to talk, play, remember, and grow together.</p>
+        </div>
+        <div class="footer-cols">
+          <div class="footer-col">
+            <h3>Product</h3>
+            <ul>
+              <li><a href="#features">Features</a></li>
+              <li><a href="#how-it-works">How it works</a></li>
+              <li><a href="#privacy">Privacy</a></li>
+              <li><a href="#download">Download</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h3>Legal</h3>
+            <ul>
+              <li><span class="soon">Privacy Policy (coming soon)</span></li>
+              <li><span class="soon">Terms of Service (coming soon)</span></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h3>Support</h3>
+            <ul>
+              <li><span class="soon">Contact (coming soon)</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Loomi</span>
+        <span>Made for two.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

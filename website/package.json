@@ -1,0 +1,13 @@
+{
+  "name": "loomi-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static marketing site for Loomi. No framework, no build step at runtime — sharp is a devDependency used once to optimize source illustrations into web-sized WebP/AVIF.",
+  "scripts": {
+    "optimize-images": "node tools/optimize-images.mjs",
+    "serve": "npx --yes serve -l 4173 ."
+  },
+  "devDependencies": {
+    "sharp": "^0.33.5"
+  }
+}

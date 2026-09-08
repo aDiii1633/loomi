@@ -50,3 +50,7 @@ yarn-error.*
 *.keystore
 !android/app/debug.keystore
 android/keystore.properties
+
+# website workspace
+website/node_modules/
+
