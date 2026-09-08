@@ -11,6 +11,7 @@ import { Icon } from '../../src/components/Icon';
 import { colors, border, elevation, radii, space, type } from '../../src/theme/tokens';
 import { useSessionStore } from '../../src/state/session';
 import { useConnectionStore } from '../../src/state/connection';
+import { useRewardsStore } from '../../src/state/rewards';
 import { daysTogether } from '../../src/domain/datetime';
 
 /** "Together since June 14, 2022" from the couple's real anniversary date.
@@ -30,6 +31,9 @@ export default function ProfileScreen() {
   const couple = useSessionStore((s) => s.couple);
   const streak = useConnectionStore((s) => s.streak);
   const refresh = useConnectionStore((s) => s.refresh);
+  const points = useRewardsStore((s) => s.points);
+  const refreshRewards = useRewardsStore((s) => s.refresh);
+  const awardStreak = useRewardsStore((s) => s.awardStreak);
   const { signOut } = useClerk();
 
   const confirmSignOut = useCallback(() => {
@@ -51,7 +55,11 @@ export default function ProfileScreen() {
   useFocusEffect(
     useCallback(() => {
       refresh();
-    }, [refresh])
+      refreshRewards();
+      // Server-idempotent: pays +10 to each partner once per qualifying
+      // streak day, no-ops otherwise.
+      if (couple?.id && streak?.qualifiesToday) awardStreak(couple.id);
+    }, [refresh, refreshRewards, awardStreak, couple?.id, streak?.qualifiesToday])
   );
 
   const topInset = useSafeTopInset(space.md);
@@ -77,6 +85,7 @@ export default function ProfileScreen() {
             <MetaPill label={`${daysTogether(couple.anniversaryISO)} days`} icon="heart" />
             <MetaPill label={`Lv. ${couple.level}`} icon="sun" />
             <MetaPill label={`${streak?.current ?? 0}-day streak`} icon="zap" />
+            <MetaPill label={`${points} pts`} icon="star" />
           </View>
         </View>
 
@@ -84,6 +93,7 @@ export default function ProfileScreen() {
           <View style={{ gap: space.sm }}>
             <LinkRow icon="user" label="Personal profile" hint="Names, birthdays, avatars" onPress={() => router.push('/settings')} />
             <LinkRow icon="smile" label="Your avatar" hint="A photo or a Pao & Ly illustration" onPress={() => router.push('/avatar')} />
+            <LinkRow icon="star" label="Points & shop" hint={`${points} pts · unlock illustrations`} onPress={() => router.push('/shop')} />
             <LinkRow icon="map" label="Location sharing" hint="Opt-in, always in your control" onPress={() => router.push('/location')} />
             <LinkRow icon="lock" label="Private vault" hint="PIN & biometric protected" onPress={() => router.push('/vault')} />
             <LinkRow icon="calendar" label="Important dates" hint="Birthdays & anniversaries" onPress={() => router.push('/dates')} />
@@ -98,7 +108,7 @@ export default function ProfileScreen() {
   );
 }
 
-function MetaPill({ label, icon }: { label: string; icon: 'heart' | 'sun' | 'zap' }) {
+function MetaPill({ label, icon }: { label: string; icon: 'heart' | 'sun' | 'zap' | 'star' }) {
   return (
     <View style={styles.metaPill}>
       <Icon name={icon} size={14} color={colors.charcoal} />
