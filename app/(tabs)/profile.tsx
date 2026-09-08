@@ -1,7 +1,9 @@
 /** PROFILE — color-blocked couple identity hero + entry points to settings. */
 import React, { useCallback } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { useClerk } from '@clerk/expo';
+import { format, parseISO } from 'date-fns';
 import { useSafeTopInset } from '../../src/components/chrome';
 import { Avatar, Card } from '../../src/components/primitives';
 import { Icon } from '../../src/components/Icon';
@@ -10,6 +12,16 @@ import { useSessionStore } from '../../src/state/session';
 import { useConnectionStore } from '../../src/state/connection';
 import { daysTogether } from '../../src/domain/datetime';
 
+/** "Together since June 14, 2022" from the couple's real anniversary date.
+ * parseISO keeps a date-only string at local midnight (no UTC shift). */
+function formatSince(anniversaryISO: string): string {
+  try {
+    return `Together since ${format(parseISO(anniversaryISO), 'MMMM d, yyyy')}`;
+  } catch {
+    return 'Together';
+  }
+}
+
 export default function ProfileScreen() {
   const router = useRouter();
   const self = useSessionStore((s) => s.self);
@@ -17,6 +29,23 @@ export default function ProfileScreen() {
   const couple = useSessionStore((s) => s.couple);
   const streak = useConnectionStore((s) => s.streak);
   const refresh = useConnectionStore((s) => s.refresh);
+  const { signOut } = useClerk();
+
+  const confirmSignOut = useCallback(() => {
+    Alert.alert('Log out?', "You'll need to sign in again to get back to your shared space.", [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log out',
+        style: 'destructive',
+        // Clerk clears the session; the root layout's signed-in -> signed-out
+        // effect wipes local SQLite/media/stores and the (tabs) guard sends
+        // the user to the auth screen. Nothing else to do here.
+        onPress: () => {
+          void signOut();
+        },
+      },
+    ]);
+  }, [signOut]);
 
   useFocusEffect(
     useCallback(() => {
@@ -42,7 +71,7 @@ export default function ProfileScreen() {
           <Text style={styles.names}>
             {self.name} &amp; {partner.name}
           </Text>
-          <Text style={styles.since}>Together since June 14, 2022</Text>
+          <Text style={styles.since}>{formatSince(couple.anniversaryISO)}</Text>
           <View style={styles.metaRow}>
             <MetaPill label={`${daysTogether(couple.anniversaryISO)} days`} icon="heart" />
             <MetaPill label={`Lv. ${couple.level}`} icon="sun" />
@@ -58,6 +87,7 @@ export default function ProfileScreen() {
             <LinkRow icon="calendar" label="Important dates" hint="Birthdays & anniversaries" onPress={() => router.push('/dates')} />
             <LinkRow icon="book" label="Journal" hint="Letters between the two of us" onPress={() => router.push('/journal')} />
             <LinkRow icon="settings" label="Settings" hint="Notifications, privacy, data" onPress={() => router.push('/settings')} />
+            <LinkRow icon="log-out" label="Log out" hint="Sign out of this device" onPress={confirmSignOut} destructive />
           </View>
           <View style={{ height: 140 }} />
         </View>
@@ -80,20 +110,22 @@ function LinkRow({
   label,
   hint,
   onPress,
+  destructive = false,
 }: {
   icon: string;
   label: string;
   hint: string;
   onPress: () => void;
+  destructive?: boolean;
 }) {
   return (
     <Card onPress={onPress} padding="compact">
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-        <View style={styles.linkIcon}>
-          <Icon name={icon as never} size={20} color={colors.primary} />
+        <View style={[styles.linkIcon, destructive && styles.linkIconDestructive]}>
+          <Icon name={icon as never} size={20} color={destructive ? colors.error : colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ ...type.labelLg, color: colors.charcoal }}>{label}</Text>
+          <Text style={{ ...type.labelLg, color: destructive ? colors.error : colors.charcoal }}>{label}</Text>
           <Text style={{ ...type.bodySm, color: colors.inkVariant }}>{hint}</Text>
         </View>
         <Icon name="chevron-right" size={18} color={colors.outlineVariant} />
@@ -140,4 +172,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  linkIconDestructive: { backgroundColor: colors.errorContainer },
 });
