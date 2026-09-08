@@ -18,6 +18,7 @@ import {
   validateMilestoneTitle,
 } from '../src/domain/goals';
 import { daysTogether, daysUntil, addDaysISO, dayISO, isValidDayISO } from '../src/domain/datetime';
+import { haversineKm, formatDistance } from '../src/domain/geo';
 import { getHomePriority } from '../src/domain/homePriority';
 import type { QuizQuestion } from '../src/domain/games';
 import type { GoalMilestone } from '../src/domain/types';
@@ -193,6 +194,23 @@ describe('goal milestones', () => {
     if (okRes.ok) expect(okRes.title).toBe('Confirm dates');
     const full: GoalMilestone[] = Array.from({ length: 12 }, (_, i) => ({ id: `f${i}`, title: `s${i}`, done: false }));
     expect(validateMilestoneTitle('one more', full).ok).toBe(false);
+  });
+});
+
+describe('geo', () => {
+  it('measures great-circle distance within ~1%', () => {
+    // Mumbai (Bandra) -> Pune, ~120 km straight line.
+    const d = haversineKm({ lat: 19.06, lon: 72.84 }, { lat: 18.52, lon: 73.86 });
+    expect(d).toBeGreaterThan(115);
+    expect(d).toBeLessThan(125);
+    expect(haversineKm({ lat: 19.06, lon: 72.84 }, { lat: 19.06, lon: 72.84 })).toBe(0);
+  });
+
+  it('formats distance by magnitude', () => {
+    expect(formatDistance(0.4)).toBe('400 m');
+    expect(formatDistance(2.345)).toBe('2.3 km');
+    expect(formatDistance(42.7)).toBe('43 km');
+    expect(formatDistance(NaN)).toBe('—');
   });
 });
 

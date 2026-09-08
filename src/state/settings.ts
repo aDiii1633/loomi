@@ -10,6 +10,8 @@ import type { AppSettings, LocationPermissionState, LocationState } from '../dom
 import { loadSettings, saveSettings } from '../data/repositories/couple';
 import { dayISO, formatTime } from '../domain/datetime';
 import { pushLocal, makeNotificationId } from '../data/repositories/notifications';
+import { haversineKm } from '../domain/geo';
+import { upsertMyLocation, deleteMyLocation, fetchPartnerLocation } from '../data/backend/location';
 import { useSessionStore } from './session';
 import { haptic } from './ui';
 
@@ -75,6 +77,29 @@ async function reverseGeocodeLabel(lat: number, lon: number): Promise<string> {
   }
 }
 
+/** Partner's real, couple-scoped fix from Supabase (migration 0007), mapped
+ * to the display shape with a distance computed against our own fix. Falls
+ * back to the __DEV__ seed only when the backend genuinely has nothing. */
+async function resolvePartner(
+  self: { lat: number; lon: number } | null
+): Promise<LocationState['partner']> {
+  const s = useSessionStore.getState();
+  const coupleId = s.couple?.id;
+  const myId = s.self?.id;
+  if (coupleId && myId) {
+    const remote = await fetchPartnerLocation(coupleId, myId);
+    if (remote) {
+      const distanceKm = self ? haversineKm(self, { lat: remote.lat, lon: remote.lon }) : 0;
+      return {
+        distanceKm: Math.round(distanceKm * 10) / 10,
+        label: remote.label ?? `${remote.lat.toFixed(3)}, ${remote.lon.toFixed(3)}`,
+        syncedAtISO: remote.updated_at,
+      };
+    }
+  }
+  return partnerSnapshot();
+}
+
 function mapPermission(status: Location.PermissionStatus, canAskAgain: boolean): LocationPermissionState {
   if (status === 'granted') return 'granted';
   if (status === 'denied') return canAskAgain ? 'requested' : 'denied';
@@ -89,6 +114,11 @@ export const useLocationStore = create<LocationStoreState>((set, get) => ({
     const { status, canAskAgain } = await Location.getForegroundPermissionsAsync();
     const permission = mapPermission(status, canAskAgain);
     set({ permission, state: { ...get().state, permission } });
+    // Pull the partner's latest shared fix (if any) whenever the screen opens.
+    if (get().state.sharingEnabled) {
+      const partner = await resolvePartner(get().state.self);
+      set((s) => ({ state: { ...s.state, partner } }));
+    }
   },
   requestPermission: async () => {
     set({ loading: true });
@@ -116,6 +146,12 @@ export const useLocationStore = create<LocationStoreState>((set, get) => ({
         createdAt: Date.now(),
         route: '/location',
       });
+    } else {
+      // Turning sharing off removes the row entirely — the partner sees
+      // nothing, not a stale last-known spot.
+      const s = useSessionStore.getState();
+      if (s.couple?.id && s.self?.id) await deleteMyLocation(s.couple.id, s.self.id);
+      set((st) => ({ state: { ...st.state, self: null, partner: null } }));
     }
   },
   updateOwnLocation: async () => {
@@ -124,18 +160,32 @@ export const useLocationStore = create<LocationStoreState>((set, get) => ({
     try {
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const label = await reverseGeocodeLabel(pos.coords.latitude, pos.coords.longitude);
+      const self = {
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude,
+        label,
+        atISO: `${dayISO()} ${formatTime(pos.timestamp)}`,
+      };
+      // Push our fix to the couple-scoped backend row, then read the
+      // partner's (RLS keeps this to our own couple).
+      const s = useSessionStore.getState();
+      if (s.couple?.id && s.self?.id) {
+        await upsertMyLocation({
+          coupleId: s.couple.id,
+          userId: s.self.id,
+          lat: self.lat,
+          lon: self.lon,
+          label,
+        });
+      }
+      const partner = await resolvePartner(self);
       set({
         loading: false,
         state: {
           ...get().state,
           sharingEnabled: true,
-          self: {
-            lat: pos.coords.latitude,
-            lon: pos.coords.longitude,
-            label,
-            atISO: `${dayISO()} ${formatTime(pos.timestamp)}`,
-          },
-          partner: partnerSnapshot(),
+          self,
+          partner,
         },
       });
     } catch {

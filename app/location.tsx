@@ -113,8 +113,8 @@ export default function LocationScreen() {
         <Card padding="compact" style={{ marginTop: space.lg }}>
           {[
             'Only used in the foreground, when you ask.',
-            'Never stored anywhere but this device (for now).',
-            'One tap to stop sharing completely.',
+            'Only your partner can ever see it — never anyone else.',
+            'Turning it off deletes your shared spot immediately.',
           ].map((line, i) => (
             <View key={line} style={[styles.promiseRow, i > 0 && { borderTopWidth: border.widthThin, borderTopColor: border.color }]}>
               <Icon name="shield" size={14} color={colors.primary} />
