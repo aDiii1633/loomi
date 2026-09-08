@@ -5,7 +5,8 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useClerk } from '@clerk/expo';
 import { format, parseISO } from 'date-fns';
 import { useSafeTopInset } from '../../src/components/chrome';
-import { Avatar, Card } from '../../src/components/primitives';
+import { Card } from '../../src/components/primitives';
+import { AvatarView } from '../../src/components/AvatarView';
 import { Icon } from '../../src/components/Icon';
 import { colors, border, elevation, radii, space, type } from '../../src/theme/tokens';
 import { useSessionStore } from '../../src/state/session';
@@ -63,9 +64,9 @@ export default function ProfileScreen() {
         {/* Color-blocked identity hero */}
         <View style={[styles.hero, { paddingTop: topInset + space.lg }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Avatar name={self.name} size={64} />
+            <AvatarView name={self.name} avatar={self.avatar} size={64} />
             <View style={{ marginHorizontal: -12, zIndex: 2 }}>
-              <Avatar name={partner.name} size={64} />
+              <AvatarView name={partner.name} avatar={partner.avatar} size={64} />
             </View>
           </View>
           <Text style={styles.names}>
@@ -82,6 +83,7 @@ export default function ProfileScreen() {
         <View style={styles.content}>
           <View style={{ gap: space.sm }}>
             <LinkRow icon="user" label="Personal profile" hint="Names, birthdays, avatars" onPress={() => router.push('/settings')} />
+            <LinkRow icon="smile" label="Your avatar" hint="A photo or a Pao & Ly illustration" onPress={() => router.push('/avatar')} />
             <LinkRow icon="map" label="Location sharing" hint="Opt-in, always in your control" onPress={() => router.push('/location')} />
             <LinkRow icon="lock" label="Private vault" hint="PIN & biometric protected" onPress={() => router.push('/vault')} />
             <LinkRow icon="calendar" label="Important dates" hint="Birthdays & anniversaries" onPress={() => router.push('/dates')} />

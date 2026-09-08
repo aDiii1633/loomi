@@ -97,7 +97,12 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         return false;
       }
       const { me, couple, partner } = snapshot;
-      const nextSelf: User = { id: me.id, name: me.display_name || self.name, isSelf: true };
+      const nextSelf: User = {
+        id: me.id,
+        name: me.display_name || self.name,
+        avatar: me.avatar_url ?? undefined,
+        isSelf: true,
+      };
       const nextCouple: Couple = {
         id: couple.id,
         partnerAId: me.id,
@@ -119,7 +124,12 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       }
       set({
         self: nextSelf,
-        partner: { id: partner.id, name: partner.display_name || 'Your person', isSelf: false },
+        partner: {
+          id: partner.id,
+          name: partner.display_name || 'Your person',
+          avatar: partner.avatar_url ?? undefined,
+          isSelf: false,
+        },
         couple: nextCouple,
         hasCouple: true,
         coupleLookupPending: false,
