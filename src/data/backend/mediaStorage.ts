@@ -13,7 +13,7 @@
  */
 import * as FileSystem from 'expo-file-system/legacy';
 import { getDb } from '../db';
-import { getMedia, type MediaKind } from '../media';
+import { getMedia, type MediaKind, type MediaRecord } from '../media';
 import { getSupabase, isSupabaseConfigured } from './supabaseClient';
 
 const BUCKET = 'couple-media';
@@ -126,6 +126,19 @@ export async function ensureLocalMedia(mediaId: string): Promise<string | null> 
   } catch {
     return null;
   }
+}
+
+/** Drop-in for getMediaMany that first downloads any bytes missing on this
+ * device (e.g. media the partner uploaded). Skips ids that resolve nowhere. */
+export async function resolveMediaMany(ids: readonly string[]): Promise<MediaRecord[]> {
+  const out: MediaRecord[] = [];
+  for (const id of ids) {
+    const uri = await ensureLocalMedia(id);
+    if (!uri) continue;
+    const rec = await getMedia(id);
+    if (rec) out.push({ ...rec, uri });
+  }
+  return out;
 }
 
 export async function deleteCoupleMedia(coupleId: string, mediaId: string, kind: MediaKind): Promise<void> {

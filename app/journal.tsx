@@ -9,7 +9,7 @@ import { Icon } from '../src/components/Icon';
 import { Mascot } from '../src/components/illustrations/Mascot';
 import { colors, radii, space, type, elevation, border } from '../src/theme/tokens';
 import { useJournalStore, useMemoriesStore } from '../src/state/life';
-import { getMediaMany } from '../src/data/media';
+import { resolveMediaMany as getMediaMany } from '../src/data/backend/mediaStorage';
 import { pickMedia, captureMedia, type PickedMedia } from '../src/components/mediaPicker';
 import { validateText } from '../src/domain/validation';
 import { formatFriendlyLong } from '../src/domain/datetime';

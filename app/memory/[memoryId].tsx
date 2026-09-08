@@ -8,7 +8,8 @@ import { Button, Card, EmptyState, SkeletonCard } from '../../src/components/pri
 import { Icon } from '../../src/components/Icon';
 import { colors, radii, space, type, border, elevation } from '../../src/theme/tokens';
 import { useMemoriesStore } from '../../src/state/life';
-import { getMediaMany, type MediaRecord } from '../../src/data/media';
+import { type MediaRecord } from '../../src/data/media';
+import { resolveMediaMany as getMediaMany } from '../../src/data/backend/mediaStorage';
 import { formatFriendlyLong } from '../../src/domain/datetime';
 import { useUIStore } from '../../src/state/ui';
 

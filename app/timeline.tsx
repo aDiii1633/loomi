@@ -8,7 +8,7 @@ import { Button, Card, Chip, EmptyState, Input } from '../src/components/primiti
 import { Icon } from '../src/components/Icon';
 import { colors, radii, space, type, border, elevation } from '../src/theme/tokens';
 import { useTimelineStore } from '../src/state/life';
-import { getMediaMany } from '../src/data/media';
+import { resolveMediaMany as getMediaMany } from '../src/data/backend/mediaStorage';
 import { pickMedia, type PickedMedia } from '../src/components/mediaPicker';
 import { validateDayISO, validateText } from '../src/domain/validation';
 import { formatDayLabel } from '../src/domain/datetime';

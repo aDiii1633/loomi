@@ -8,7 +8,7 @@ import { Button, Card, Chip, EmptyState, ErrorText, Input, SkeletonCard } from '
 import { Icon } from '../../src/components/Icon';
 import { border, colors, elevation, fontWeightFamily, radii, space, type } from '../../src/theme/tokens';
 import { useMemoriesStore } from '../../src/state/life';
-import { getMediaMany } from '../../src/data/media';
+import { resolveMediaMany as getMediaMany } from '../../src/data/backend/mediaStorage';
 import { pickMedia, captureMedia, type PickedMedia } from '../../src/components/mediaPicker';
 import { validateText } from '../../src/domain/validation';
 import { dayISO, formatDayLabel } from '../../src/domain/datetime';

@@ -11,6 +11,7 @@ import * as lifeRepo from '../data/repositories/life';
 import * as plansRepo from '../data/repositories/plans';
 import { toggleMilestoneDone } from '../domain/goals';
 import { importMedia, newId } from '../data/media';
+import { uploadCoupleMedia } from '../data/backend/mediaStorage';
 import { currentIdentity, requireIdentity } from './identity';
 import { pullSince, pushDirty } from '../data/backend/sync';
 import { track } from '../services/analytics';
@@ -18,6 +19,28 @@ import { track } from '../services/analytics';
 /* -------------------------------- memories -------------------------------- */
 
 type PickedMediaInput = { uri: string; kind: 'image' | 'video'; width?: number; height?: number; fileSize?: number };
+
+/** Copy a picked file locally AND push its bytes to Storage so the partner
+ * can see it. The row (memory/journal/timeline) still saves immediately;
+ * the upload runs in the background. */
+async function importAndUpload(
+  coupleId: string,
+  selfId: string,
+  m: PickedMediaInput
+): Promise<string> {
+  const rec = await importMedia({ sourceUri: m.uri, kind: m.kind, width: m.width, height: m.height, fileSize: m.fileSize });
+  void uploadCoupleMedia({
+    coupleId,
+    uploadedBy: selfId,
+    mediaId: rec.id,
+    localUri: rec.uri,
+    kind: m.kind,
+    byteSize: rec.fileSize ?? 0,
+    width: rec.width,
+    height: rec.height,
+  });
+  return rec.id;
+}
 
 interface MemoriesState {
   loaded: boolean;
@@ -49,11 +72,10 @@ export const useMemoriesStore = create<MemoriesState>((set, get) => ({
     }
   },
   addMemory: async (input) => {
-    const { coupleId } = requireIdentity();
+    const { coupleId, selfId } = requireIdentity();
     const mediaIds: string[] = [];
     for (const m of input.mediaUris) {
-      const rec = await importMedia({ sourceUri: m.uri, kind: m.kind, width: m.width, height: m.height, fileSize: m.fileSize });
-      mediaIds.push(rec.id);
+      mediaIds.push(await importAndUpload(coupleId, selfId, m));
     }
     await lifeRepo.upsertMemory({
       id: newId('memory'), coupleId, title: input.title.trim(), caption: input.caption?.trim() || undefined,
@@ -126,8 +148,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     const existing = input.id ? get().entries.find((e) => e.id === input.id) : undefined;
     const mediaIds: string[] = existing?.mediaIds ?? [];
     for (const m of input.mediaUris) {
-      const rec = await importMedia({ sourceUri: m.uri, kind: m.kind, width: m.width, height: m.height, fileSize: m.fileSize });
-      mediaIds.push(rec.id);
+      mediaIds.push(await importAndUpload(coupleId, selfId, m));
     }
     await lifeRepo.upsertJournalEntry({
       id: existing?.id ?? newId('journal'),
@@ -180,12 +201,11 @@ export const useTimelineStore = create<TimelineState>((set, get) => ({
     }
   },
   saveMoment: async (input) => {
-    const { coupleId } = requireIdentity();
+    const { coupleId, selfId } = requireIdentity();
     const existing = input.id ? get().moments.find((m) => m.id === input.id) : undefined;
     const mediaIds: string[] = existing?.mediaIds ?? [];
     for (const m of input.mediaUris) {
-      const rec = await importMedia({ sourceUri: m.uri, kind: m.kind, width: m.width, height: m.height, fileSize: m.fileSize });
-      mediaIds.push(rec.id);
+      mediaIds.push(await importAndUpload(coupleId, selfId, m));
     }
     await lifeRepo.upsertMoment({
       id: existing?.id ?? newId('moment'),

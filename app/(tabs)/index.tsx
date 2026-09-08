@@ -14,7 +14,7 @@ import { useSessionStore } from '../../src/state/session';
 import { useConnectionStore } from '../../src/state/connection';
 import { useMemoriesStore, useDatesStore, useGoalsStore } from '../../src/state/life';
 import { useDraftsStore } from '../../src/state/drafts';
-import { getMediaMany } from '../../src/data/media';
+import { resolveMediaMany as getMediaMany } from '../../src/data/backend/mediaStorage';
 import { daysTogether, daysUntil, formatDayLabel } from '../../src/domain/datetime';
 import { getHomePriority, type HomePriority } from '../../src/domain/homePriority';
 
