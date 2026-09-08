@@ -25,7 +25,7 @@ import { toast } from '../../src/components/toast';
 import { colors, radii, space, type, border, elevation } from '../../src/theme/tokens';
 import { useSessionStore } from '../../src/state/session';
 import { useChatStore } from '../../src/state/chat';
-import { getMedia } from '../../src/data/media';
+import { ensureLocalMedia } from '../../src/data/backend/mediaStorage';
 import { formatTime } from '../../src/domain/datetime';
 import type { Message } from '../../src/domain/types';
 
@@ -276,8 +276,10 @@ function MessageBubble({
         if (!cancelled) setWaveform(wf);
       }
       if ((message.kind === 'image' || message.kind === 'video') && message.mediaId) {
-        const media = await getMedia(message.mediaId);
-        if (!cancelled && media) setMediaUri(media.uri);
+        // Resolves from the local cache, or downloads the partner's upload
+        // from Storage on first view.
+        const uri = await ensureLocalMedia(message.mediaId);
+        if (!cancelled && uri) setMediaUri(uri);
       }
     })();
     return () => {
@@ -363,8 +365,8 @@ function VoiceBubble({ mediaId, durationMs, waveform, mine }: { mediaId: string;
   const [uri, setUri] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
-    getMedia(mediaId).then((m) => {
-      if (!cancelled && m) setUri(m.uri);
+    ensureLocalMedia(mediaId).then((u) => {
+      if (!cancelled && u) setUri(u);
     });
     return () => {
       cancelled = true;

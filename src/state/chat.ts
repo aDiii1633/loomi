@@ -6,6 +6,7 @@ import { create } from 'zustand';
 import type { Message } from '../domain/types';
 import { listMessages, insertMessage, toggleReaction, softDeleteMessage } from '../data/repositories/chat';
 import { importMedia, importAudioRecording, newId } from '../data/media';
+import { uploadCoupleMedia } from '../data/backend/mediaStorage';
 import { currentIdentity, requireIdentity, NoCoupleError } from './identity';
 import { pullSince, pushDirty } from '../data/backend/sync';
 
@@ -81,6 +82,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
         reactions: {},
         sentAt: Date.now(),
       });
+      // Push the bytes so the partner can actually see the image/video, then
+      // the message row (which carries media_id).
+      void uploadCoupleMedia({
+        coupleId,
+        uploadedBy: selfId,
+        mediaId: media.id,
+        localUri: media.uri,
+        kind,
+        byteSize: media.fileSize ?? 0,
+        width: media.width,
+        height: media.height,
+      }).then(() => pushDirty('messages', coupleId));
       void pushDirty('messages', coupleId);
       await get().refresh();
     } finally {
@@ -104,6 +117,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
         reactions: {},
         sentAt: Date.now(),
       });
+      void uploadCoupleMedia({
+        coupleId,
+        uploadedBy: selfId,
+        mediaId: media.id,
+        localUri: media.uri,
+        kind: 'audio',
+        byteSize: media.fileSize ?? 0,
+        durationMs,
+      }).then(() => pushDirty('messages', coupleId));
       void pushDirty('messages', coupleId);
       await get().refresh();
     } finally {
