@@ -9,7 +9,9 @@ import { clerkErrorMessage } from '../../src/auth/clerkError';
 import { GoogleAuthButton } from '../../src/auth/googleSSO';
 import { colors, space, type } from '../../src/theme/tokens';
 
-const POST_AUTH_ROUTE = '/(auth)/link-couple' as const;
+// profile-setup self-forwards to link-couple when name + gender already exist,
+// so returning users never actually see it.
+const POST_AUTH_ROUTE = '/(auth)/profile-setup' as const;
 
 export default function SignInScreen() {
   const router = useRouter();

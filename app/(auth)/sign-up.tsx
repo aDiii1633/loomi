@@ -10,10 +10,10 @@ import { GoogleAuthButton } from '../../src/auth/googleSSO';
 import { MIN_PASSWORD_LENGTH, validatePassword } from '../../src/domain/validation';
 import { colors, space, type } from '../../src/theme/tokens';
 
-/** After the Clerk session is live, leave the auth stack. The (auth) group
- * layout forwards signed-in + already-linked users straight to the app; a
- * brand-new account lands on link-couple, which is exactly right. */
-const POST_AUTH_ROUTE = '/(auth)/link-couple' as const;
+/** After the Clerk session is live, leave the auth stack. A brand-new account
+ * lands on profile-setup (name + gender); it self-forwards to link-couple the
+ * moment those already exist, so it never nags a returning user. */
+const POST_AUTH_ROUTE = '/(auth)/profile-setup' as const;
 
 export default function SignUpScreen() {
   const router = useRouter();
