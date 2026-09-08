@@ -8,6 +8,8 @@ import { Button, Card, Chip, EmptyState, ErrorText, Input, SkeletonCard } from '
 import { Icon } from '../../src/components/Icon';
 import { border, colors, elevation, fontWeightFamily, radii, space, type } from '../../src/theme/tokens';
 import { useMemoriesStore } from '../../src/state/life';
+import { useSessionStore } from '../../src/state/session';
+import { LockedScreen } from '../../src/components/LockedScreen';
 import { resolveMediaMany as getMediaMany } from '../../src/data/backend/mediaStorage';
 import { pickMedia, captureMedia, type PickedMedia } from '../../src/components/mediaPicker';
 import { validateText } from '../../src/domain/validation';
@@ -22,6 +24,7 @@ type MemoryFilter = 'all' | 'month' | 'favorites';
 export default function MemoriesScreen() {
   const router = useRouter();
   const { memories, loading, error, refresh, addMemory } = useMemoriesStore();
+  const hasCouple = useSessionStore((s) => s.hasCouple);
   const [filter, setFilter] = useState<MemoryFilter>('all');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -94,6 +97,8 @@ export default function MemoriesScreen() {
     if (filter === 'favorites') return memories.filter((m) => m.favorite);
     return memories.slice(1);
   }, [memories, filter, thisMonth]);
+
+  if (!hasCouple) return <LockedScreen feature="Memories" />;
 
   return (
     <View style={styles.root}>

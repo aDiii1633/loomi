@@ -29,6 +29,7 @@ export default function ProfileScreen() {
   const self = useSessionStore((s) => s.self);
   const partner = useSessionStore((s) => s.partner);
   const couple = useSessionStore((s) => s.couple);
+  const hasCouple = useSessionStore((s) => s.hasCouple);
   const streak = useConnectionStore((s) => s.streak);
   const refresh = useConnectionStore((s) => s.refresh);
   const points = useRewardsStore((s) => s.points);
@@ -63,6 +64,32 @@ export default function ProfileScreen() {
   );
 
   const topInset = useSafeTopInset(space.md);
+
+  // Signed in, no partner yet: a minimal, non-locked profile so the user can
+  // still reach Settings and Log out. (Everything couple-shaped is elsewhere.)
+  if (self && !hasCouple) {
+    return (
+      <View style={styles.root}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={[styles.hero, { paddingTop: topInset + space.lg }]}>
+            <AvatarView name={self.name} avatar={self.avatar} size={64} />
+            <Text style={styles.names}>{self.name}</Text>
+            <Text style={styles.since}>Not linked with a partner yet</Text>
+          </View>
+          <View style={styles.content}>
+            <View style={{ gap: space.sm }}>
+              <LinkRow icon="heart" label="Connect with your partner" hint="Unlock everything in Loomi" onPress={() => router.navigate('/(tabs)')} />
+              <LinkRow icon="user" label="Personal profile" hint="Name, birthday, avatar" onPress={() => router.push('/settings')} />
+              <LinkRow icon="smile" label="Your avatar" hint="A photo or a Pao & Ly illustration" onPress={() => router.push('/avatar')} />
+              <LinkRow icon="settings" label="Settings" hint="Notifications, privacy, data" onPress={() => router.push('/settings')} />
+              <LinkRow icon="log-out" label="Log out" hint="Sign out of this device" onPress={confirmSignOut} destructive />
+            </View>
+            <View style={{ height: 140 }} />
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
 
   if (!self || !partner || !couple) return null;
 

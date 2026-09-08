@@ -38,7 +38,6 @@ function DockTabBar({ state, navigation }: BottomTabBarProps) {
 export default function TabsLayout() {
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
   const coupleId = useSessionStore((s) => s.couple?.id ?? null);
-  const hasCouple = useSessionStore((s) => s.hasCouple);
   const bypass = isDevBypass();
 
   // Realtime: partner writes land in Supabase → postgres_changes fires → the
@@ -98,9 +97,9 @@ export default function TabsLayout() {
   if (!bypass && authLoaded && !isSignedIn) {
     return <Redirect href="/(auth)/sign-in" />;
   }
-  if (!bypass && authLoaded && isSignedIn && !hasCouple) {
-    return <Redirect href="/(auth)/link-couple" />;
-  }
+  // A signed-in user with no couple is NOT gated out — they enter the app and
+  // see Home's "connect with your partner" flow, with every other feature
+  // shown locked until they link. See app/(tabs)/index.tsx + LockedScreen.
 
   return (
     <Tabs

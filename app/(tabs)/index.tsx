@@ -10,6 +10,7 @@ import { PaoAndLy } from '../../src/components/illustrations/Mascot';
 import { FadeSlideIn } from '../../src/components/motion/FadeSlideIn';
 import { Icon, glyphs, type IconName } from '../../src/components/Icon';
 import { colors, border, space, type, radii, elevation } from '../../src/theme/tokens';
+import { ConnectPartner } from '../../src/components/ConnectPartner';
 import { useSessionStore } from '../../src/state/session';
 import { useConnectionStore } from '../../src/state/connection';
 import { useMemoriesStore, useDatesStore, useGoalsStore } from '../../src/state/life';
@@ -23,6 +24,7 @@ export default function HomeScreen() {
   const self = useSessionStore((s) => s.self);
   const partner = useSessionStore((s) => s.partner);
   const couple = useSessionStore((s) => s.couple);
+  const hasCouple = useSessionStore((s) => s.hasCouple);
   const { today, streak, refresh } = useConnectionStore();
   const memories = useMemoriesStore((s) => s.memories);
   const refreshMemories = useMemoriesStore((s) => s.refresh);
@@ -89,6 +91,26 @@ export default function HomeScreen() {
   });
 
   const topInset = useSafeTopInset(space.md);
+
+  // Signed in but not linked yet: Home IS the connect flow. Everything else
+  // in the app is shown locked until this completes.
+  if (self && !hasCouple) {
+    return (
+      <View style={styles.root}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: space.dockHeight + space['3xl'] }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={[styles.hero, { paddingTop: topInset + space.md, paddingBottom: space.lg }]}>
+            <Text style={styles.eyebrow}>WELCOME TO LOOMI</Text>
+            <Text style={styles.display}>Hi {self.name} 👋</Text>
+          </View>
+          <ConnectPartner onConnected={() => refresh()} />
+        </ScrollView>
+      </View>
+    );
+  }
 
   if (!self || !partner || !couple) return null;
 

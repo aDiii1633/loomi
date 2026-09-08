@@ -13,6 +13,7 @@ import { Icon, glyphs, type IconName } from '../../src/components/Icon';
 import { colors, border, elevation, space, type, radii } from '../../src/theme/tokens';
 import { useConnectionStore } from '../../src/state/connection';
 import { useSessionStore } from '../../src/state/session';
+import { LockedScreen } from '../../src/components/LockedScreen';
 import { useGamesStore, useChallengesStore } from '../../src/state/activities';
 import { useGoalsStore, useBucketStore, useMemoriesStore } from '../../src/state/life';
 import { useLocationStore, useSettingsStore } from '../../src/state/settings';
@@ -36,6 +37,7 @@ export default function TogetherScreen() {
   const refreshLocation = useLocationStore((s) => s.refresh);
   const settings = useSettingsStore((s) => s.settings);
   const partner = useSessionStore((s) => s.partner);
+  const hasCouple = useSessionStore((s) => s.hasCouple);
 
   useFocusEffect(
     useCallback(() => {
@@ -57,6 +59,8 @@ export default function TogetherScreen() {
   const ongoingPlans =
     goals.filter((g) => !g.done).length + challengeProgress.filter((p) => p.status === 'active').length;
   const moodDoneToday = useConnectionStore.getState().selfMoodToday != null;
+
+  if (!hasCouple) return <LockedScreen feature="Together" />;
 
   return (
     <View style={styles.root}>

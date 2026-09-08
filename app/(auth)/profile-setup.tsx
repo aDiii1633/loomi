@@ -21,7 +21,7 @@ import { validateText } from '../../src/domain/validation';
 import { useSessionStore } from '../../src/state/session';
 import { border, colors, radii, space, type } from '../../src/theme/tokens';
 
-const NEXT_ROUTE = '/(auth)/link-couple' as const;
+const NEXT_ROUTE = '/(tabs)' as const;
 
 const GENDERS = [
   { key: 'female', label: 'Female' },

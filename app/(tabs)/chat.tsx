@@ -20,6 +20,7 @@ import { Avatar } from '../../src/components/primitives';
 import { LoomiIllustration } from '../../src/components/illustrations/LoomiIllustration';
 import { Icon } from '../../src/components/Icon';
 import { ImageViewer } from '../../src/components/ImageViewer';
+import { LockedScreen } from '../../src/components/LockedScreen';
 import { VoicePlayer, VoiceRecorder } from '../../src/components/voice';
 import { captureMedia, pickMedia } from '../../src/components/mediaPicker';
 import { toast } from '../../src/components/toast';
@@ -36,6 +37,7 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const self = useSessionStore((s) => s.self);
   const partner = useSessionStore((s) => s.partner);
+  const hasCouple = useSessionStore((s) => s.hasCouple);
   const { messages, loading, loadingOlder, hasMore, error, sending, refresh, loadOlder, sendText, sendMedia, sendVoice, react, remove } = useChatStore();
   const [draft, setDraft] = useState('');
   const [recording, setRecording] = useState(false);
@@ -67,6 +69,7 @@ export default function ChatScreen() {
     sendText(text).then(scrollToLatest).catch(() => setDraft(text));
   };
 
+  if (!hasCouple) return <LockedScreen feature="Chat" />;
   if (!self || !partner) return null;
 
   return (
