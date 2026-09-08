@@ -22,7 +22,6 @@ import { captureMedia, pickMedia } from '../../src/components/mediaPicker';
 import { colors, radii, space, type, border, elevation } from '../../src/theme/tokens';
 import { useSessionStore } from '../../src/state/session';
 import { useChatStore } from '../../src/state/chat';
-import { useCoupleRealtime } from '../../src/data/backend/realtime';
 import { getMedia } from '../../src/data/media';
 import { formatTime } from '../../src/domain/datetime';
 import type { Message } from '../../src/domain/types';
@@ -38,17 +37,15 @@ export default function ChatScreen() {
   const [recording, setRecording] = useState(false);
   const [reactionFor, setReactionFor] = useState<string | null>(null);
   const listRef = useRef<FlatList<Message>>(null);
-  const coupleId = useSessionStore((s) => s.couple?.id ?? null);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  // Live partner messages. The channel is couple-scoped server-side
-  // (filter couple_id=eq.<id> + RLS), so no cross-couple data can arrive.
-  useCoupleRealtime(coupleId, (table) => {
-    if (table === 'messages') void refresh();
-  });
+  // Live partner messages arrive via the couple-scoped Realtime channel in
+  // app/(tabs)/_layout.tsx, which pulls the `messages` table and calls
+  // useChatStore.refresh() — this screen re-renders from that store, so no
+  // separate subscription is needed here (one channel per couple).
 
   // On an `inverted` list the newest row is index 0 and sits at the visual
   // bottom, so revealing a just-sent message means scrolling to offset 0 —

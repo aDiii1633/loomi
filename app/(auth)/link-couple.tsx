@@ -5,10 +5,13 @@
  * silently-injected demo identity (that was the whole bug we fixed earlier).
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
+import * as Linking from 'expo-linking';
 import { useClerk } from '@clerk/expo';
 import { Button, Card, ErrorText, Input } from '../../src/components/primitives';
+import { toast } from '../../src/components/toast';
 import { LoomiIllustration } from '../../src/components/illustrations/LoomiIllustration';
 import { colors, space, type } from '../../src/theme/tokens';
 import { getSupabase, isSupabaseConfigured } from '../../src/data/backend/supabaseClient';
@@ -23,6 +26,7 @@ import { useSessionStore } from '../../src/state/session';
 export default function LinkCoupleScreen() {
   const { signOut } = useClerk();
   const router = useRouter();
+  const params = useLocalSearchParams<{ code?: string }>();
   const refreshCouple = useSessionStore((s) => s.refreshCouple);
   const selfName = useSessionStore((s) => s.self?.name);
 
@@ -42,6 +46,36 @@ export default function LinkCoupleScreen() {
   const pendingCoupleId = useRef<string | null>(null);
 
   const backendReady = isSupabaseConfigured();
+
+  // Prefill the join field when the app was opened from a shared invite link
+  // (twofold://link-couple?code=ABCD1234). Runs once when a code is present.
+  useEffect(() => {
+    const incoming = typeof params.code === 'string' ? params.code.trim().toUpperCase() : '';
+    if (incoming) setJoinCode((prev) => prev || incoming);
+  }, [params.code]);
+
+  const copyCode = async () => {
+    if (!myInvite) return;
+    await Clipboard.setStringAsync(myInvite.code);
+    toast('Invite code copied', 'success');
+  };
+
+  const shareInvite = async () => {
+    if (!myInvite) return;
+    // A real deep link into this screen with the code prefilled. On a
+    // standalone build this resolves to twofold://link-couple?code=...;
+    // the plain code in the text is the always-works fallback.
+    const link = Linking.createURL('link-couple', { queryParams: { code: myInvite.code } });
+    try {
+      await Share.share({
+        message:
+          `Join me on Loomi 💛\n\nInvite code: ${myInvite.code}\n` +
+          `Open the app, sign up, and paste the code to link our space.\n${link}`,
+      });
+    } catch {
+      // User dismissed the share sheet — not an error.
+    }
+  };
 
   // Make sure the caller's public.users row exists before any RPC that needs
   // it (create_couple raises "no profile yet" otherwise). Idempotent.
@@ -157,8 +191,12 @@ export default function LinkCoupleScreen() {
                 <>
                   <Text style={styles.codeText}>{myInvite.code}</Text>
                   <Text style={{ ...type.bodySm, color: colors.inkVariant }}>
-                    Share this code. It expires {new Date(myInvite.expiresAt).toLocaleString()} and can only be used once.
+                    Expires {new Date(myInvite.expiresAt).toLocaleString()} · one-time use.
                   </Text>
+                  <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.sm }}>
+                    <Button label="Copy code" variant="secondary" onPress={copyCode} style={{ flex: 1 }} />
+                    <Button label="Share invite" onPress={shareInvite} style={{ flex: 1 }} />
+                  </View>
                 </>
               ) : (
                 <Button label={busy ? 'Creating…' : 'Generate invite code'} onPress={handleCreateInvite} loading={busy} style={{ marginTop: space.sm }} />
